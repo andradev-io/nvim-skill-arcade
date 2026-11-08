@@ -97,6 +97,12 @@ end
 
 function M.all()
   local list = vim.list_slice(M.builtin())
+  for _, raw in ipairs(require("skill_arcade.community").load()) do
+    local ok, ch = pcall(M.normalize, raw, raw.area)
+    if ok then
+      list[#list + 1] = ch
+    end
+  end
   for _, g in ipairs(require("skill_arcade.store").generated_list()) do
     local ok, ch = pcall(M.normalize, g, g.area or "motions")
     if ok then

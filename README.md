@@ -133,6 +133,19 @@ returns **data only** (start text, cursor, expected text/cursor, reference keys)
 reference keys are only displayed (marked *model-made*). Invalid or already-solved challenges are discarded.
 (The Ollama container setup from nvim-learn-refactor works unchanged.)
 
+## Community challenges
+
+Anyone can design a challenge on the website of
+[nvim-skill-arcade-challenges](https://github.com/dev-vinicius-andrade/nvim-skill-arcade-challenges)
+(form -> pull request -> CI replays the reference keys -> review -> published).
+
+`:ArcadeSync` (menu: *Sync community challenges*) downloads the published bundle. They then join runs and practice,
+marked *community*. Sync is manual and https-only; set `community = { enabled = false }` to ignore them.
+
+Safety: a community challenge is **data only**. `skill_arcade.schema` whitelists every field (unknown fields are
+dropped), checks and set-ups come from fixed presets in the plugin, reference keys are restricted (no `:!`, `:lua`,
+`|`, `\=`, `<C-r>=`; short ex-command list), and the data is re-validated on download **and on every load**.
+
 ## Writing challenges
 
 Each pack is `lua/skill_arcade/challenges/<area>.lua` returning a list:

@@ -17,6 +17,12 @@ M.defaults = {
   level = nil, -- force the starting difficulty (1-5); nil = your saved level
   plugin_challenges = true, -- offer challenges that feature plugins you have installed
   hud = true,
+  -- community challenges: data only, validated against a strict schema. `:ArcadeSync` downloads them;
+  -- nothing is ever fetched automatically.
+  community = {
+    enabled = true, -- include synced community challenges in runs
+    url = "https://dev-vinicius-andrade.github.io/nvim-skill-arcade-challenges/community.json", -- built by CI (GitHub Pages)
+  },
   -- optional model-generated challenges: "none" | "anthropic" | "openai" (any OpenAI-compatible endpoint)
   provider = "none",
   generate_count = 3,

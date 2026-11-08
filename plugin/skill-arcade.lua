@@ -24,6 +24,7 @@ local simple = {
   ArcadeStats = { "stats", "Points, weak areas, personal bests" },
   ArcadeSetup = { "setup_report", "Show which of your plugins the game found" },
   ArcadeDaily = { "daily", "Daily challenge set" },
+  ArcadeSync = { "sync", "Download community challenges (data only, validated)" },
 }
 for name, def in pairs(simple) do
   vim.api.nvim_create_user_command(name, function()

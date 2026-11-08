@@ -229,6 +229,124 @@ local got_err
 p.request("x", function(_, err) got_err = err end)
 check("provider none explains itself", got_err and got_err:find("none", 1, true))
 
+-- ── community challenges: data-only schema ─────────────────────────────────
+local schema = require("skill_arcade.schema")
+local validate = require("skill_arcade.validate")
+local community = require("skill_arcade.community")
+
+for _, bad in ipairs({
+  ":!rm -rf /<CR>", ":lua os.execute('x')<CR>", [[:%s/a/\=system('x')/<CR>]], ":g/a/d | q<CR>",
+  "i<C-r>=system('ls')<CR><Esc>", ":w!<CR>", ":e foo<CR>", ":source x<CR>", "",
+}) do
+  check("unsafe solution rejected: " .. bad, schema.unsafe_solution(bad) ~= nil)
+end
+for _, good in ipairs({
+  'ci"x<Esc>', ":%s/foo/bar/g<CR>", ":g/x/norm A!<CR>", ":'<,'>s/a/b/<CR>", ":1,3d<CR>", ":$m0<CR>",
+  ":/foo/s/a/b/<CR>", ":cc 3<CR>", "<C-w>v",
+}) do
+  check("safe solution accepted: " .. good, schema.unsafe_solution(good) == nil, schema.unsafe_solution(good))
+end
+
+local function base()
+  return {
+    id = "swap-words", title = "Swap two words", area = "editing", level = 2,
+    brief = "Make the line read: world hello", text = "hello world", cursor = { 1, 0 },
+    solution = "dwA <Esc>p", expect = { text = "world hello" }, why = "dw then paste.", author = "tester",
+  }
+end
+check("schema accepts a valid challenge", schema.validate(base()) ~= nil)
+local function mutated(fn)
+  local c = base()
+  fn(c)
+  return select(2, schema.validate(c))
+end
+check("schema: unknown area", mutated(function(c) c.area = "hacking" end))
+check("schema: level out of range", mutated(function(c) c.level = 9 end))
+check("schema: bad id", mutated(function(c) c.id = "../../etc" end))
+check("schema: missing expect", mutated(function(c) c.expect = nil end))
+check("schema: empty expect", mutated(function(c) c.expect = {} end))
+check("schema: cursor outside text", mutated(function(c) c.cursor = { 5, 0 } end))
+check("schema: too many lines", mutated(function(c) c.text = string.rep("x\n", 50) end))
+check("schema: control chars", mutated(function(c) c.title = "a\0b" end))
+check("schema: unsafe solution", mutated(function(c) c.solution = ":!ls<CR>" end))
+check("schema: unknown preset", mutated(function(c) c.preset = "shell" end))
+check("schema: unknown helps group", mutated(function(c) c.helps = { evil = "x" } end))
+local extra = base()
+extra.check = "os.execute('x')"
+extra.setup = "x"
+extra.evil = true
+local cleaned = schema.validate(extra)
+check("schema drops unknown fields (no code can ride along)", cleaned and cleaned.check == nil and cleaned.setup == nil and cleaned.evil == nil)
+
+-- replay in the real engine
+check("replay: valid challenge passes", validate.challenge(base()) ~= nil)
+local wrong = base()
+wrong.solution = "dd"
+local _, e1 = validate.challenge(wrong)
+check("replay: wrong solution rejected", e1 and e1:find("does not satisfy", 1, true), e1)
+local solved = base()
+solved.expect = { text = "hello world" }
+local _, e2 = validate.challenge(solved)
+check("replay: already-solved rejected", e2 and e2:find("already solved", 1, true), e2)
+check("replay left no run behind", game.run == nil)
+
+local presets = {
+  {
+    id = "p-split", title = "Split", area = "windows", level = 1, brief = "Open a vertical split", text = "x",
+    solution = "<C-w>v", expect = { windows = 2, layout = "row" }, why = "w",
+  },
+  {
+    id = "p-qf", title = "Third hit", area = "quickfix", level = 2, brief = "Jump to the third hit",
+    text = "a\nTODO b\nc\nTODO d\ne\nTODO f", preset = "quickfix_hits", preset_rows = { 2, 4, 6 },
+    solution = ":cc 3<CR>", expect = { quickfix = { idx = 3 }, at = { 6, "TODO" } }, why = "w",
+  },
+  {
+    id = "p-diag", title = "Next diagnostic", area = "diagnostics", level = 1, brief = "Go to the first diagnostic",
+    text = "a\nb\nc\nd\ne\nf\ng\nh\ni\nj", preset = "diagnostics", preset_rows = { 4, 9 }, solution = "]d",
+    expect = { cursor = { 4 } }, why = "w",
+  },
+  {
+    id = "p-alt", title = "Alt buffer", area = "windows", level = 1, brief = "Flip back", text = "A",
+    preset = "alt_buffer", solution = "<C-^>", expect = { alt_buffer = true }, why = "w",
+  },
+  {
+    id = "p-tab", title = "New tab", area = "windows", level = 1, brief = "New tab", text = "A",
+    solution = ":tabnew<CR>", expect = { extra_tabs = 1 }, why = "w",
+  },
+  {
+    id = "p-float", title = "Diag float", area = "diagnostics", level = 2, brief = "Show the message", text = "a\nb\nc\nd",
+    cursor = { 4, 0 }, preset = "diagnostics", preset_rows = { 4 }, solution = "<C-w>d",
+    expect = { float_text = "ARC:" }, why = "w",
+  },
+}
+for _, raw in ipairs(presets) do
+  local ok, err = validate.challenge(raw)
+  check("preset/assertion challenge replays: " .. raw.id, ok ~= nil, err)
+end
+
+-- bundle acceptance, storage, load
+local bundle = { challenges = { base(), base(), { id = "bad", title = "x" }, presets[1] } }
+local clean, rejected = community.accept(bundle)
+check("bundle: keeps valid, rejects duplicate + invalid", #clean == 2 and #rejected == 2, vim.inspect(rejected))
+vim.fn.mkdir(tmp, "p")
+local f = io.open(tmp .. "/community.json", "w")
+local tampered = base()
+tampered.id = "tampered"
+tampered.solution = ":!touch /tmp/pwned<CR>"
+f:write(vim.json.encode({ fetched = os.time(), challenges = { base(), tampered } }))
+f:close()
+local loaded = community.load()
+check("load re-validates stored data (tampered file ignored)", #loaded == 1 and loaded[1].id == "community.swap-words")
+local cc = catalog.by_id("community.swap-words")
+check("community challenge joins catalog", cc and cc.community and cc.area == "editing" and cc.par_keys == 6)
+config.setup({ data_dir = tmp, community = { enabled = false } })
+check("community can be disabled", catalog.by_id("community.swap-words") == nil)
+config.setup({ data_dir = tmp })
+local sync_err
+config.options.community.url = "http://insecure.example/x.json"
+community.sync(function(_, err) sync_err = err end)
+check("sync refuses non-https", sync_err and sync_err:find("https", 1, true))
+
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
 check("lazy example loads", type(spec) == "table" and spec[1][1] == "dev-vinicius-andrade/nvim-skill-arcade")

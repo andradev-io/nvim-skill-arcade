@@ -90,6 +90,20 @@ function M.setup_report()
   require("skill_arcade.ui").setup_report(require("skill_arcade.env").detect(), catalog.areas())
 end
 
+function M.sync()
+  vim.notify("SkillArcade: syncing community challenges ...")
+  require("skill_arcade.community").sync(function(n, err, rejected)
+    if not n then
+      return vim.notify("SkillArcade: sync failed: " .. tostring(err), vim.log.levels.ERROR)
+    end
+    local msg = string.format("SkillArcade: %d community challenge(s) ready", n)
+    if rejected and #rejected > 0 then
+      msg = msg .. string.format(" (%d rejected by the safety schema)", #rejected)
+    end
+    vim.notify(msg)
+  end)
+end
+
 function M.generate(area, level)
   if config.options.provider == "none" then
     return vim.notify('SkillArcade: set provider = "anthropic" or "openai" in setup() first', vim.log.levels.WARN)
