@@ -65,7 +65,8 @@ Copy [`examples/lazy.lua`](examples/lazy.lua) to `lua/plugins/skill-arcade.lua`:
 {
   "dev-vinicius-andrade/nvim-skill-arcade",
   cmd = { "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadeSkip",
-          "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate" },
+          "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync",
+          "ArcadeTry" },
   keys = {
     { "<leader>Gm", "<cmd>ArcadeMenu<cr>", desc = "Arcade: menu" },
     { "<leader>Gg", "<cmd>ArcadeRun<cr>", desc = "Arcade: start a run" },
@@ -95,6 +96,8 @@ maps the defaults.
 | stats and bests | `:ArcadeStats` | `<leader>Gt` |
 | what the game found in my setup | `:ArcadeSetup` | `<leader>Ge` |
 | generate challenges (model) | `:ArcadeGenerate [area] [level]` | - |
+| download community challenges | `:ArcadeSync` | - |
+| play a challenge file once (drafts) | `:ArcadeTry <file.json>` | - |
 
 Menu: press the letter, or `j`/`k` + `<CR>`; `q`/`<Esc>` closes. Its "mapped to" column shows your real binding.
 
@@ -141,6 +144,11 @@ Anyone can design a challenge on the website of
 
 `:ArcadeSync` (menu: *Sync community challenges*) downloads the published bundle. They then join runs and practice,
 marked *community*. Sync is manual and https-only; set `community = { enabled = false }` to ignore them.
+
+**Test a draft while you write it:** the website's *Test in Neovim* button gives you a command like
+`:ArcadeTry ~/Downloads/swap-two-words.json`. `:ArcadeTry <file>` schema-checks the file (same safety rules as below),
+plays it as one practice round with your own keys, checks and par, and shows the result and lesson. Nothing is
+saved: no points, bests, stats or history. The file name does not need to match the id.
 
 Safety: a community challenge is **data only**. `skill_arcade.schema` whitelists every field (unknown fields are
 dropped), checks and set-ups come from fixed presets in the plugin, reference keys are restricted (no `:!`, `:lua`,

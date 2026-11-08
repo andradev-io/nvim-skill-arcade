@@ -467,12 +467,14 @@ local function finish_challenge(ok, reason)
     b.plays = b.plays + 1
     bests.challenges[ch.id] = b
   end
-  save_area_stats(p, ch, ok)
-  for k, v in pairs(r.habits) do
-    p.habits[k] = (p.habits[k] or 0) + v
+  if not run.try then -- :ArcadeTry rounds never touch the saved profile or bests
+    save_area_stats(p, ch, ok)
+    for k, v in pairs(r.habits) do
+      p.habits[k] = (p.habits[k] or 0) + v
+    end
+    store.save_profile(p)
+    store.save_bests(bests)
   end
-  store.save_profile(p)
-  store.save_bests(bests)
   run.results[#run.results + 1] = r
   run.keys = run.keys + m.keys
   render_hud()
@@ -537,7 +539,7 @@ function M.start(opts)
     lives = config.options.lives, score = 0, streak = 0, best_streak = 0, results = {}, keys = 0,
     state = nil, tab = vim.api.nvim_get_current_tabpage(), win = vim.api.nvim_get_current_win(),
     origin = origin, base_tabs = base, saved = saved, started = os.time(), clock0 = now(),
-    level_from = store.profile().level,
+    level_from = store.profile().level, try = opts.try or nil,
   }
   M.run = run
   vim.on_key(on_key, KEY_NS)
@@ -618,7 +620,7 @@ local function finish_run(reason)
   if not run then
     return
   end
-  local s = (#run.results > 0) and summarize(run, reason) or nil
+  local s = (#run.results > 0 and not run.try) and summarize(run, reason) or nil
   teardown()
   if s then
     ui.summary(s)

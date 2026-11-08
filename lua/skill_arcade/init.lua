@@ -74,6 +74,20 @@ function M.practice(area)
   end)
 end
 
+--- play one challenge from a JSON file (e.g. a draft from the challenges website): one practice round,
+--- schema-checked like any community challenge, nothing saved (no points, bests or stats).
+function M.try(path)
+  if not path or path == "" then
+    return vim.notify("SkillArcade: usage :ArcadeTry <challenge.json>", vim.log.levels.WARN)
+  end
+  local clean, err = require("skill_arcade.validate").read(path)
+  if not clean then
+    return vim.notify("SkillArcade: " .. tostring(err), vim.log.levels.ERROR)
+  end
+  local ch = catalog.normalize(require("skill_arcade.community").to_challenge(clean), clean.area)
+  game.start({ mode = "practice", deck = { ch }, try = true })
+end
+
 function M.toggle() game.toggle() end
 function M.pause() game.pause() end
 function M.play() game.play() end

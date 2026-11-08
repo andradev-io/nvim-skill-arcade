@@ -40,6 +40,13 @@ vim.api.nvim_create_user_command("ArcadePractice", function(o)
   arcade().practice(o.fargs[1])
 end, { nargs = "?", complete = area_complete, desc = "Practice an area without lives: :ArcadePractice [area]" })
 
+vim.api.nvim_create_user_command("ArcadeTry", function(o)
+  arcade().try(o.args)
+end, {
+  nargs = 1, complete = "file",
+  desc = "Play a challenge .json (e.g. a draft from the website) once; nothing is saved: :ArcadeTry <file>",
+})
+
 vim.api.nvim_create_user_command("ArcadeGenerate", function(o)
   arcade().generate(o.fargs[1], o.fargs[2])
 end, { nargs = "*", complete = area_complete, desc = "Generate challenges with a model: :ArcadeGenerate [area] [level]" })

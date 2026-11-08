@@ -347,6 +347,38 @@ config.options.community.url = "http://insecure.example/x.json"
 community.sync(function(_, err) sync_err = err end)
 check("sync refuses non-https", sync_err and sync_err:find("https", 1, true))
 
+-- :ArcadeTry plays a draft file once and saves nothing
+check(":ArcadeTry command exists", vim.fn.exists(":ArcadeTry") == 2)
+local store = require("skill_arcade.store")
+local before = vim.json.encode({ store.profile(), store.bests(), store.history() })
+local draft = tmp .. "/my-draft.json" -- file name differs from id on purpose
+local df = io.open(draft, "w")
+df:write(vim.json.encode(base()))
+df:close()
+local errs = {}
+local real_notify = vim.notify
+vim.notify = function(msg) errs[#errs + 1] = msg end
+require("skill_arcade").try(tmp .. "/missing.json")
+check(":ArcadeTry reports a missing file", errs[1] and errs[1]:find("cannot read", 1, true), errs[1])
+local bad_draft = tmp .. "/bad-draft.json"
+local bf = io.open(bad_draft, "w")
+bf:write(vim.json.encode({ id = "x", title = "x", area = "editing", level = 1, brief = "b", text = "t", solution = ":!ls<CR>", expect = { text = "u" }, why = "w" }))
+bf:close()
+require("skill_arcade").try(bad_draft)
+check(":ArcadeTry refuses an unsafe draft", errs[2] and game.run == nil, errs[2])
+vim.notify = real_notify
+config.options.countdown = 0
+require("skill_arcade").try(draft)
+game._tick() -- countdown 0 -> running
+check(":ArcadeTry starts a try round", game.run and game.run.try and game.run.mode == "practice" and game.run.state == "running")
+check(":ArcadeTry round is not solved at start", not game.evaluate())
+keys.feed(base().solution)
+game._tick()
+check(":ArcadeTry round is won by the keys", game.run and game.run.state == "result" and game.run.results[1].ok)
+game.quit()
+check(":ArcadeTry leaves no run behind", game.run == nil)
+check(":ArcadeTry saves nothing", vim.json.encode({ store.profile(), store.bests(), store.history() }) == before)
+
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
 check("lazy example loads", type(spec) == "table" and spec[1][1] == "dev-vinicius-andrade/nvim-skill-arcade")

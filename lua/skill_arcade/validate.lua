@@ -48,6 +48,22 @@ function M.challenge(raw)
   return clean
 end
 
+--- read + schema-check a challenge file without replaying it (used by :ArcadeTry). returns clean or nil, reason
+function M.read(path)
+  path = vim.fn.expand(path)
+  local f = io.open(path, "r")
+  if not f then
+    return nil, "cannot read " .. path
+  end
+  local raw = f:read("*a")
+  f:close()
+  local ok, data = pcall(vim.json.decode, raw)
+  if not ok or type(data) ~= "table" then
+    return nil, "not valid JSON"
+  end
+  return schema.validate(data)
+end
+
 --- path to a challenge .json file; also checks filename == id
 function M.file(path)
   local f = io.open(path, "r")
