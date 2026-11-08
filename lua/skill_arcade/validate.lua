@@ -48,20 +48,61 @@ function M.challenge(raw)
   return clean
 end
 
---- read + schema-check a challenge file without replaying it (used by :ArcadeTry). returns clean or nil, reason
-function M.read(path)
-  path = vim.fn.expand(path)
-  local f = io.open(path, "r")
-  if not f then
-    return nil, "cannot read " .. path
+local CODE_PREFIX = "ARC1."
+
+--- "ARC1.<base64url(json)>" (a draft code copied from the challenges website) -> JSON text, or nil, reason
+function M.decode_code(code)
+  code = vim.trim(code or "")
+  if code:sub(1, #CODE_PREFIX) ~= CODE_PREFIX then
+    return nil, "not a draft code (expected ARC1.<code>)"
   end
-  local raw = f:read("*a")
-  f:close()
+  local b64 = code:sub(#CODE_PREFIX + 1):gsub("%s", ""):gsub("-", "+"):gsub("_", "/")
+  b64 = b64 .. string.rep("=", (4 - #b64 % 4) % 4)
+  local ok, raw = pcall(vim.base64.decode, b64)
+  if not ok or not raw or raw == "" then
+    return nil, "draft code is damaged (could not decode)"
+  end
+  return raw
+end
+
+--- JSON text -> schema-checked clean challenge (no replay), or nil, reason
+function M.parse(raw)
   local ok, data = pcall(vim.json.decode, raw)
   if not ok or type(data) ~= "table" then
     return nil, "not valid JSON"
   end
   return schema.validate(data)
+end
+
+--- source for :ArcadeTry: a draft code, "+" (system clipboard: JSON or code), or a .json file path.
+--- Read + schema-check without replaying. returns clean or nil, reason
+function M.read(src)
+  src = vim.trim(src or "")
+  local raw
+  if src == "+" then
+    raw = vim.trim(vim.fn.getreg("+"))
+    if raw == "" then
+      return nil, "the clipboard is empty"
+    end
+  elseif src:sub(1, #CODE_PREFIX) == CODE_PREFIX then
+    raw = src
+  else
+    local path = vim.fn.expand(src)
+    local f = io.open(path, "r")
+    if not f then
+      return nil, "cannot read " .. path
+    end
+    raw = f:read("*a")
+    f:close()
+  end
+  if vim.trim(raw):sub(1, #CODE_PREFIX) == CODE_PREFIX then
+    local err
+    raw, err = M.decode_code(raw)
+    if not raw then
+      return nil, err
+    end
+  end
+  return M.parse(raw)
 end
 
 --- path to a challenge .json file; also checks filename == id

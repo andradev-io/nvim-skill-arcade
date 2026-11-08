@@ -78,7 +78,7 @@ end
 --- schema-checked like any community challenge, nothing saved (no points, bests or stats).
 function M.try(path)
   if not path or path == "" then
-    return vim.notify("SkillArcade: usage :ArcadeTry <challenge.json>", vim.log.levels.WARN)
+    return vim.notify("SkillArcade: usage :ArcadeTry <ARC1.code | + | challenge.json>", vim.log.levels.WARN)
   end
   local clean, err = require("skill_arcade.validate").read(path)
   if not clean then

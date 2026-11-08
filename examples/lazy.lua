@@ -7,7 +7,7 @@ return {
     cmd = {
       "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadePause",
       "ArcadePlay", "ArcadeSkip", "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup",
-      "ArcadeGenerate", "ArcadeSync", "ArcadeTry",
+      "ArcadeGenerate", "ArcadeSync", "ArcadeTry", "ArcadeJoin",
     },
     -- lazy-load on first use; `keys` also registers the mappings (and shows them in which-key)
     keys = {

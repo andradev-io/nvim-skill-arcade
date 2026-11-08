@@ -379,6 +379,24 @@ game.quit()
 check(":ArcadeTry leaves no run behind", game.run == nil)
 check(":ArcadeTry saves nothing", vim.json.encode({ store.profile(), store.bests(), store.history() }) == before)
 
+-- draft codes (ARC1.<base64url json>) and the clipboard source
+local function code_of(tbl)
+  local b64 = vim.base64.encode(vim.json.encode(tbl)):gsub("+", "-"):gsub("/", "_"):gsub("=", "")
+  return "ARC1." .. b64
+end
+local code = code_of(base())
+local clean_c = validate.read(code)
+check("draft code decodes and validates", clean_c and clean_c.id == "swap-words")
+local junk = select(2, validate.read("ARC1.@@@not-base64@@@"))
+check("damaged draft code is rejected", junk ~= nil)
+local unsafe = base()
+unsafe.solution = ":!ls<CR>"
+check("draft code runs through the safety schema", select(2, validate.read(code_of(unsafe))) ~= nil)
+check(":ArcadeJoin command exists", vim.fn.exists(":ArcadeJoin") == 2)
+vim.fn.setreg("+", code)
+local from_reg = validate.read("+")
+check("'+' reads a code from the clipboard register", from_reg == nil or from_reg.id == "swap-words")
+
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
 check("lazy example loads", type(spec) == "table" and spec[1][1] == "dev-vinicius-andrade/nvim-skill-arcade")
