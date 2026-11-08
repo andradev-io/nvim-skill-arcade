@@ -1,0 +1,43 @@
+return {
+  {
+    id = "global-replace", title = "Rename everywhere", level = 1,
+    brief = "Replace every 'foo' with 'bar' in the buffer.",
+    text = "foo = 1\nprint(foo)\nlocal foo2 = foo + foo",
+    solution = ":%s/foo/bar/g<CR>",
+    expect = { text = "bar = 1\nprint(bar)\nlocal bar2 = bar + bar" },
+    helps = { replace = "project-wide search/replace UIs show a live preview; here the buffer-local :%s is faster" },
+    why = ":%s/old/new/g is the workhorse. Add `c` to confirm each match, `\\<old\\>` for whole words.",
+  },
+  {
+    id = "delete-matching", title = "Remove comment lines", level = 2,
+    brief = "Delete every line that starts with '#'.",
+    text = "# one\nkeep_a\n# two\nkeep_b\n# three",
+    solution = ":g/^#/d<CR>",
+    expect = { text = "keep_a\nkeep_b" },
+    why = ":g/pattern/d deletes matching lines; :v/pattern/d (or :g!) deletes the NON-matching ones.",
+  },
+  {
+    id = "blank-lines", title = "Squeeze out blank lines", level = 2,
+    brief = "Remove all blank lines.",
+    text = "a\n\nb\n\n\nc\n\nd",
+    solution = ":g/^$/d<CR>",
+    expect = { text = "a\nb\nc\nd" },
+    why = ":g/^$/d removes empty lines; :%s/\\n\\{3,}/\\r\\r/ squeezes runs instead.",
+  },
+  {
+    id = "normal-on-matches", title = "Mark the TODOs", level = 3,
+    brief = "Append '!' to every line that contains TODO, leave the others alone.",
+    text = "TODO fix a\nok line\nsomething TODO\nanother ok",
+    solution = ":g/TODO/norm A!<CR>",
+    expect = { text = "TODO fix a!\nok line\nsomething TODO!\nanother ok" },
+    why = ":g/pat/normal {keys} runs normal-mode keys on each match - macros without recording.",
+  },
+  {
+    id = "capture-swap", title = "Swap with captures", level = 4,
+    brief = "Turn 'Doe, John' style lines into 'John Doe'.",
+    text = "Doe, John\nRoe, Jane\nPoe, Edgar",
+    solution = [[:%s/\v(\w+), (\w+)/\2 \1/<CR>]],
+    expect = { text = "John Doe\nJane Roe\nEdgar Poe" },
+    why = [[`\v` (very magic) lets you write (groups) without backslashes; `\1`, `\2` are the captures.]],
+  },
+}
