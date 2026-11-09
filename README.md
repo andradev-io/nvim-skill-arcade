@@ -37,12 +37,36 @@ Modes: **run** (ramped difficulty), **daily** (same 5 challenges for everyone ea
 
 Rank: **S** keys <= par and time <= par; **A** <= 1.5x keys / 2x time; **B** <= 2x keys; else **C**.
 
-## Skill areas (45+ built-in challenges)
+## Skill areas (55+ built-in challenges)
 
 `motions`, `textobjects`, `editing`, `search` (:s, :g), `macros`, `registers`, `marks` (marks + jumplist),
 `windows` (splits, tabs, buffers), `quickfix`, `diagnostics` (jump / float / to quickfix - planted by the game, so it
-works with or without an LSP), `plugins` (featured challenges for plugins you have).
+works with or without an LSP), `track` (reach a goal on a text-grid map, see below), `plugins` (featured challenges for
+plugins you have).
 Restrict them: `areas = { "motions", "textobjects" }`.
+
+### Tracks (`track`)
+
+A **track** is a text-grid map. You start on one cell and must reach the goal cell with motions, in as few keys as
+you can, optionally touching numbered checkpoints in order on the way. Maps mark the start `S`, the goal `X` and the
+checkpoints `1`..`6`. Only the end state is judged (cursor on the goal, every checkpoint visited in order, map
+untouched), so your own keybinds and plugins work. The HUD shows checkpoint progress and the rules of the map.
+
+Some tracks switch key families off so the motions you have not practised are the only way through: `hjkl`,
+`arrows`, `mouse` (buffer-local, only on that map). Ten built-in tracks run from `$` and `f{char}` (level 1) to
+`%`, `}`, marks, `{n}G`, `-`/`+` and search with checkpoints and rules (level 5).
+
+In a challenge file a track is data:
+
+```json
+{ "area": "track", "text": "S...X\n.....", "cursor": [1, 0],
+  "track": { "goal": [1, 4], "checkpoints": [[2, 2]], "forbid": ["hjkl", "arrows"] },
+  "solution": "j2lgg$", "...": "id title level brief why" }
+```
+
+`expect` is derived (cursor on `goal`, text unchanged) and may be left out. At most 6 checkpoints; each is a cell
+(row 1-based, column 0-based) inside the map, different from the goal and from each other. The reference
+`solution` is replayed headless and must reach the goal through every checkpoint in order.
 
 ## Your setup, not a sandbox
 

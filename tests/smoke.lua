@@ -35,7 +35,7 @@ local areas = {}
 for _, ch in ipairs(all) do
   areas[ch.area] = (areas[ch.area] or 0) + 1
 end
-check("covers all 11 skill areas", vim.tbl_count(areas) == 11, vim.inspect(areas))
+check("covers all 12 skill areas", vim.tbl_count(areas) == 12, vim.inspect(areas))
 local ids = {}
 for _, ch in ipairs(all) do
   check("unique id " .. ch.id, not ids[ch.id])
@@ -396,6 +396,104 @@ check(":ArcadeJoin command exists", vim.fn.exists(":ArcadeJoin") == 2)
 vim.fn.setreg("+", code)
 local from_reg = validate.read("+")
 check("'+' reads a code from the clipboard register", from_reg == nil or from_reg.id == "swap-words")
+
+-- ── tracks (text-grid maps judged by the end state) ────────────────────────
+do
+  local function start_track(id)
+    game.start({ mode = "practice", deck = { catalog.by_id(id) }, countdown = 0 })
+    return game.run
+  end
+  -- checkpoints are ordered: the goal alone does not count
+  start_track("track.ordered-stops")
+  keys.feed("fX")
+  check("track: goal before the checkpoints does not count", not game.evaluate())
+  quiet_abort()
+  -- wrong order (2 before 1) does not count either, even after visiting all of them
+  start_track("track.ordered-stops")
+  keys.feed("f2f1f3fX")
+  check("track: checkpoints out of order do not count", not game.evaluate(), game.run.cur.state.cp)
+  quiet_abort()
+  -- a track is judged on an untouched buffer
+  start_track("track.straight-road")
+  keys.feed("$x")
+  check("track: editing the map breaks the goal", not game.evaluate())
+  quiet_abort()
+  -- key rules: hjkl are off on grid-run, f and G still work
+  local run = start_track("track.grid-run")
+  local before_cur = vim.api.nvim_win_get_cursor(0)
+  keys.feed("llj")
+  check("track: hjkl are blocked when forbidden", vim.deep_equal(vim.api.nvim_win_get_cursor(0), before_cur),
+    vim.inspect(vim.api.nvim_win_get_cursor(0)))
+  keys.feed("4Gf1")
+  check("track: other motions work and count the first checkpoint", game.evaluate() == false and run.cur.state.cp == 1,
+    run.cur.state.cp)
+  quiet_abort()
+  -- hjkl stay free on a track that does not forbid them
+  start_track("track.straight-road")
+  keys.feed("3l")
+  check("track: hjkl work when not forbidden", vim.api.nvim_win_get_cursor(0)[2] == 3)
+  quiet_abort()
+
+  -- schema
+  local function trk()
+    return {
+      id = "my-track", title = "My track", area = "track", level = 2, brief = "Reach X.", text = "S...X\n.....\n.....",
+      cursor = { 1, 0 }, solution = "$", why = "w", track = { goal = { 1, 4 } },
+    }
+  end
+  check("track schema: valid track", schema.validate(trk()) ~= nil, select(2, schema.validate(trk())))
+  local t1 = schema.validate(trk())
+  check("track schema: expect is derived from the goal", t1 and t1.expect.cursor[1] == 1 and t1.expect.cursor[2] == 4
+    and t1.expect.text == t1.text)
+  local function bad(fn)
+    local c = trk()
+    fn(c)
+    return select(2, schema.validate(c))
+  end
+  check("track schema: needs the track object", bad(function(c) c.track = nil end) ~= nil)
+  check("track schema: goal outside the map", bad(function(c) c.track.goal = { 9, 0 } end) ~= nil)
+  check("track schema: goal column outside the line", bad(function(c) c.track.goal = { 1, 40 } end) ~= nil)
+  check("track schema: start equal to goal", bad(function(c) c.track.goal = { 1, 0 } end) ~= nil)
+  check("track schema: unknown forbid", bad(function(c) c.track.forbid = { "everything" } end) ~= nil)
+  check("track schema: checkpoint equal to goal", bad(function(c) c.track.checkpoints = { { 1, 4 } } end) ~= nil)
+  check("track schema: too many checkpoints", bad(function(c)
+    c.track.checkpoints = { { 2, 0 }, { 2, 1 }, { 2, 2 }, { 2, 3 }, { 2, 4 }, { 3, 0 }, { 3, 1 } }
+  end) ~= nil)
+  check("track schema: track data needs area track", bad(function(c)
+    c.area = "motions"
+    c.expect = { text = "x" }
+  end) ~= nil)
+  check("track schema: checkpoints and rules accepted", (function()
+    local c = trk()
+    c.track.checkpoints = { { 2, 2 } }
+    c.track.forbid = { "hjkl", "arrows", "mouse" }
+    return schema.validate(c) ~= nil
+  end)())
+
+  -- a community track replays in the real engine, and an unsolvable one is rejected
+  local ok_track = trk()
+  check("track replay: reference keys reach the goal", validate.challenge(ok_track) ~= nil,
+    select(2, validate.challenge(ok_track)))
+  local wrong = trk()
+  wrong.solution = "j"
+  check("track replay: wrong reference keys are rejected",
+    (select(2, validate.challenge(wrong)) or ""):find("does not satisfy", 1, true) ~= nil)
+  local skip = trk()
+  skip.track.checkpoints = { { 2, 2 } }
+  check("track replay: skipping a checkpoint is rejected", validate.challenge(skip) == nil)
+  local with_cp = trk()
+  with_cp.track.checkpoints = { { 2, 2 } }
+  with_cp.solution = "j2lgg$"
+  check("track replay: checkpoint then goal", validate.challenge(with_cp) ~= nil, select(2, validate.challenge(with_cp)))
+
+  -- :ArcadeJoin with a track code
+  require("skill_arcade").try(code_of(ok_track))
+  game._tick()
+  check(":ArcadeJoin plays a track draft", game.run and game.run.try and game.run.cur.ch.track ~= nil)
+  keys.feed(ok_track.solution)
+  check(":ArcadeJoin track is won by the keys", game.evaluate())
+  quiet_abort()
+end
 
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")

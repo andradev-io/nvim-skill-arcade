@@ -17,6 +17,7 @@ local AREA_HINT = {
   windows = "<C-w> is the window prefix; :tab commands for tabs.",
   quickfix = ":copen, :cc N, ]q / [q, :vimgrep.",
   diagnostics = "]d / [d jump, <C-w>d opens the float, vim.diagnostic.* has the rest.",
+  track = "Reach the goal cell with motions: w b e, f t ; ,, %, { }, G, | (column), marks, / search.",
   plugins = "This one rewards a plugin you installed.",
 }
 
@@ -59,6 +60,11 @@ function M.normalize(raw, area)
   ch.time_limit = ch.time_limit or math.max(45, ch.par_seconds * 5)
   ch.hint = ch.hint or AREA_HINT[ch.area]
   ch.helps = ch.helps or {}
+  if ch.track then
+    -- a track is judged by the end state: cursor on the goal, buffer untouched, checkpoints visited in order
+    ch.expect = { text = ch.text or table.concat(ch.lines, "\n"), cursor = ch.track.goal }
+    ch.check = ch.check or require("skill_arcade.track").check_fn(ch.track)
+  end
   local e = ch.expect
   if e then
     if e.at then

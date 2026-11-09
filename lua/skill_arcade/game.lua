@@ -8,6 +8,7 @@ local coach = require("skill_arcade.coach")
 local keys = require("skill_arcade.keys")
 local ui = require("skill_arcade.ui")
 local env = require("skill_arcade.env")
+local track = require("skill_arcade.track")
 
 local M = {}
 
@@ -164,11 +165,23 @@ function M.make_ctx()
   return ctx
 end
 
+--- track checkpoints: look at where the cursor is. Called before every key (on_key) and before every check,
+--- because CursorMoved does not fire between keys fed from a script (tests, CI replay).
+local function observe_track(run)
+  local cur = run.cur
+  if cur and cur.ch.track and run.state == "running" and vim.api.nvim_get_current_buf() == cur.buf then
+    track.step(cur.ch.track, cur.state, vim.api.nvim_win_get_cursor(0))
+  end
+end
+
+M._observe_track = observe_track
+
 function M.evaluate()
   local run = M.run
   if not run or not run.cur then
     return false
   end
+  observe_track(run)
   local ok, res = pcall(catalog.check, run.cur.ch, M.make_ctx())
   return ok and res or false
 end
@@ -190,6 +203,7 @@ local function on_key(_, typed)
   if #log < 5000 then
     log[#log + 1] = { k, vim.api.nvim_get_mode().mode }
   end
+  M._observe_track(run)
 end
 
 --- drop the keys that triggered a game control (mapping or :ArcadeX) from the key log
@@ -277,6 +291,12 @@ local function render_hud()
     b:add(string.format(" time %s / %s   keys %d (par %d)", scoring.clock(e), scoring.clock(ch.time_limit), #cur.log,
       ch.par_keys), left < 10 and "WarningMsg" or nil)
   end
+  if ch.track then
+    local extra = vim.tbl_filter(function(s) return s end, { track.progress(ch.track, cur.state), track.rules_line(ch.track) })
+    if #extra > 0 then
+      b:add(" " .. table.concat(extra, "   "), "DiagnosticInfo")
+    end
+  end
   if cur.hints > 0 then
     b:wrap("hint: " .. (ch.hint or ""), 62, " ", "DiagnosticHint")
   end
@@ -356,6 +376,7 @@ local function load_challenge(run)
     countdown_end = now() + config.options.countdown,
   }
   run.cur = cur
+  track.attach(ch, buf, cur.state, AUG)
   if ch.setup then
     local x = {
       buf = buf, win = run.win, lines = ch.lines, state = cur.state, diag_ns = DIAG_NS, ch = ch,
@@ -382,6 +403,7 @@ local function begin_play()
   run.state = "running"
   run.cur.t0 = now()
   run.cur.log = {}
+  run.cur.state.cp = 0 -- checkpoints only count once the clock runs
   lock(false)
   render_hud()
 end

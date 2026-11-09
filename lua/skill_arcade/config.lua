@@ -2,7 +2,7 @@ local M = {}
 
 M.all_areas = {
   "motions", "textobjects", "editing", "search", "macros", "registers",
-  "marks", "windows", "quickfix", "diagnostics", "plugins",
+  "marks", "windows", "quickfix", "diagnostics", "track", "plugins",
 }
 
 M.defaults = {

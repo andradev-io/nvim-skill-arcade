@@ -109,6 +109,80 @@ local function in_list(v, list, field)
   return nil, field .. " must be one of: " .. table.concat(list, ", ")
 end
 
+local function cell(v, lines, field)
+  if type(v) ~= "table" or type(v[1]) ~= "number" or type(v[2]) ~= "number" or v[1] ~= math.floor(v[1])
+    or v[2] ~= math.floor(v[2]) then
+    return nil, field .. " must be [row, col]"
+  end
+  local line = lines[v[1]]
+  if not line then
+    return nil, field .. " is outside the map"
+  end
+  if v[2] < 0 or v[2] > math.max(0, #line - 1) then
+    return nil, field .. " is outside the map"
+  end
+  return { v[1], v[2] }
+end
+
+--- track object: { goal = {r,c}, checkpoints? = {{r,c}...}, forbid? = {"hjkl"|"arrows"|"mouse"} }
+function M.validate_track(t, text, start)
+  if type(t) ~= "table" then
+    return nil, "a track challenge needs a track object with a goal"
+  end
+  local lines = vim.split(((text or ""):gsub("\n$", "")), "\n", { plain = true })
+  local out = {}
+  local goal, e1 = cell(t.goal, lines, "track.goal")
+  if not goal then
+    return nil, e1
+  end
+  out.goal = goal
+  if t.checkpoints ~= nil then
+    if type(t.checkpoints) ~= "table" or #t.checkpoints > require("skill_arcade.track").MAX_CHECKPOINTS then
+      return nil, "track.checkpoints must be a short list of [row, col]"
+    end
+    local seen = { [goal[1] .. ":" .. goal[2]] = true }
+    out.checkpoints = {}
+    for i, raw in ipairs(t.checkpoints) do
+      local p, e2 = cell(raw, lines, "track.checkpoints[" .. i .. "]")
+      if not p then
+        return nil, e2
+      end
+      local key = p[1] .. ":" .. p[2]
+      if seen[key] then
+        return nil, "track.checkpoints must be different cells, none of them the goal"
+      end
+      seen[key] = true
+      out.checkpoints[i] = p
+    end
+    if #out.checkpoints == 0 then
+      out.checkpoints = nil
+    end
+  end
+  if t.forbid ~= nil then
+    if type(t.forbid) ~= "table" then
+      return nil, "track.forbid must be a list"
+    end
+    local seen = {}
+    out.forbid = {}
+    for _, f in ipairs(t.forbid) do
+      if not require("skill_arcade.track").FORBID[f] then
+        return nil, "track.forbid allows: hjkl, arrows, mouse"
+      end
+      if not seen[f] then
+        seen[f] = true
+        out.forbid[#out.forbid + 1] = f
+      end
+    end
+    if #out.forbid == 0 then
+      out.forbid = nil
+    end
+  end
+  if start and start[1] == goal[1] and start[2] == goal[2] and not out.checkpoints then
+    return nil, "the start cell is already the goal"
+  end
+  return out
+end
+
 --- validates a raw (decoded JSON) challenge. returns clean table, or nil + error message
 function M.validate(raw)
   if type(raw) ~= "table" then
@@ -213,9 +287,25 @@ function M.validate(raw)
     end
   end
 
+  -- track: goal cell, ordered checkpoints, key rules. The assertions are derived (cursor on the goal, buffer untouched).
+  local is_track = c.area == "track"
+  if raw.track ~= nil and not is_track then
+    err = err or "track data needs area = \"track\""
+  end
+  if is_track then
+    local t, et = M.validate_track(raw.track, c.text, c.cursor)
+    err = err or et
+    c.track = t
+    if t then
+      c.expect = { text = c.text, cursor = { t.goal[1], t.goal[2] } }
+    end
+  end
+
   -- expect: declarative assertions only
   local e = raw.expect
-  if type(e) ~= "table" then
+  if is_track then
+    -- derived above
+  elseif type(e) ~= "table" then
     err = err or "missing expect"
   else
     local x = {}
