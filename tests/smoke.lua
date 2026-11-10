@@ -428,6 +428,12 @@ do
   check("track: other motions work and count the first checkpoint", game.evaluate() == false and run.cur.state.cp == 1,
     run.cur.state.cp)
   quiet_abort()
+  -- the HUD must not cover the map: it sits at the bottom on a track
+  start_track("track.straight-road")
+  local tw = require("skill_arcade.ui").hud_win()
+  local tcfg = tw and vim.api.nvim_win_get_config(tw)
+  check("track: HUD sits at the bottom, not over the map", tcfg and tcfg.anchor == "SE", vim.inspect(tcfg and tcfg.anchor))
+  quiet_abort()
   -- hjkl stay free on a track that does not forbid them
   start_track("track.straight-road")
   keys.feed("3l")
