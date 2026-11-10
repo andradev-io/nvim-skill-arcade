@@ -137,7 +137,7 @@ function M.hud_win()
 end
 
 function M.hud_show(b)
-  local sig = table.concat(b.lines, "\n")
+  local sig = (b.bottom and "B" or "T") .. table.concat(b.lines, "\n")
   local in_tab = hud.win and vim.api.nvim_win_is_valid(hud.win)
     and vim.api.nvim_win_get_tabpage(hud.win) == vim.api.nvim_get_current_tabpage()
   if sig == hud.text and in_tab then
@@ -155,6 +155,11 @@ function M.hud_show(b)
     relative = "editor", anchor = "NE", row = 1, col = vim.o.columns - 1,
     width = width, height = #b.lines,
   }
+  if b.bottom then
+    -- the buffer is the playing field (track maps): keep the top free, sit just above the status/command line
+    cfg.anchor = "SE"
+    cfg.row = vim.o.lines - vim.o.cmdheight - (vim.o.laststatus > 0 and 1 or 0)
+  end
   if in_tab then
     vim.api.nvim_win_set_config(hud.win, cfg)
   else

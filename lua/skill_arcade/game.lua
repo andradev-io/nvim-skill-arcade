@@ -273,6 +273,7 @@ local function render_hud()
   end
   local cur, ch = run.cur, run.cur.ch
   local b = ui.builder()
+  b.bottom = ch.track ~= nil -- maps live at the top of the buffer: do not cover them
   local lives = run.lives_on and ("   lives " .. run.lives) or ""
   b:add(string.format(" ARCADE %s %d/%d%s   streak %d   score %d", run.label, run.index, #run.deck, lives, run.streak, run.score),
     "Title")
