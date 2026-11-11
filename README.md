@@ -22,13 +22,16 @@ to the leaderboard.
 |---|---|---|
 | 1 Meadow | Moving around | `h j k l`, counts, `w b e`, `0 $` |
 | 2 Quarry | Editing | `x dd dw`, `i a A o`, `u`, `cw`, `yy p`, `.` |
+| 3 Forest | Finding your way | `f t ; ,`, `/` `n` `*`, `%`, `{ }`, `gg G` |
+| 4 Temple | Text objects | `diw ciw`, `di" ci"`, `di( ci{`, `daw dap dit` |
+| 5 Peak | Visual mode | `v V <C-v>`, selecting objects, block insert and change |
 
 `:ArcadeCampaign` opens the world list (with a "Continue" entry), `:ArcadeCampaign continue` jumps straight to your next
 stage, `:ArcadeCampaign w2` opens one world, `:ArcadeCampaign reset` forgets your campaign progress. Set
 `campaign = { unlock_all = true }` to jump anywhere.
 
-Next worlds (planned, one file each in `lua/skill_arcade/campaign/`): Search, Text objects, Visual mode, Registers and
-macros, Files/windows/marks, and a final boss rush with `h j k l` and the arrow keys switched off. A new world is a
+Next worlds (planned, one file each in `lua/skill_arcade/campaign/`): Registers and macros, Files/windows/marks, and a
+final boss rush with `h j k l` and the arrow keys switched off. A new world is a
 list of stages in a file plus one line in `campaign/worlds.lua`.
 
 ## How it plays

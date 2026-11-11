@@ -1,0 +1,67 @@
+-- World 5, Peak: visual mode. Select first, then act: v (characters), V (lines), <C-v> (a rectangular block).
+return {
+  {
+    title = "Select, then delete", teach = "v starts selecting; move, then d to delete the selection.",
+    brief = "Delete the word DELETE, leave the rest.",
+    text = "keep DELETE keep", cursor = { 1, 5 }, expect = { text = "keep  keep" },
+    solution = "ved",
+    why = "In Visual mode the motion extends the selection (ve = to the end of the word) and the operator acts on it.",
+  },
+  {
+    title = "Select whole lines", teach = "V selects whole lines.",
+    brief = "Delete the two 'bin' lines.",
+    text = "keep\nbin\nbin\nkeep", cursor = { 2, 0 }, expect = { text = "keep\nkeep" },
+    solution = "Vjd",
+    why = "V selects lines, so j extends it one line at a time. d, y, > and J all work on the selection.",
+  },
+  {
+    title = "Select inside", teach = "vi\" selects what is inside the quotes.",
+    brief = "Delete the quoted text, keep the quotes.",
+    text = "x = \"gone\"", cursor = { 1, 6 }, expect = { text = "x = \"\"" },
+    solution = "vi\"d",
+    why = "Text objects work in Visual mode too: vi\", vip, vaw. Select first when you want to SEE what will change.",
+  },
+  {
+    title = "Shout a word", teach = "U makes the selection uppercase, u lowercase.",
+    brief = "Make 'this' uppercase.",
+    text = "make this loud", cursor = { 1, 5 }, expect = { text = "make THIS loud" },
+    solution = "viwU",
+    why = "viw selects the word, U uppercases it. gUiw does the same without entering Visual mode.",
+  },
+  {
+    title = "Join the lines", teach = "J joins the selected lines into one.",
+    brief = "Make one line: a b c",
+    text = "a\nb\nc", cursor = { 1, 0 }, expect = { text = "a b c" },
+    solution = "VjjJ",
+    why = "J joins lines with a single space. 3J does the same without Visual mode.",
+  },
+  {
+    title = "Select a paragraph", teach = "vap selects a paragraph and its blank line.",
+    brief = "Delete the first paragraph.",
+    text = "one\ntwo\n\nkeep", cursor = { 1, 0 }, expect = { text = "keep" },
+    solution = "vapd",
+    why = "Same object as dap, but you see the selection first. Press o to jump to the other end of it.",
+  },
+  {
+    title = "A column of text", teach = "<C-v> selects a rectangular block of columns.",
+    brief = "Delete the digits in the middle column.",
+    text = "a1b\nc2d\ne3f", cursor = { 1, 1 }, expect = { text = "ab\ncd\nef" },
+    solution = "<C-v>jjd",
+    why = "Block mode selects a rectangle, the way you would in a spreadsheet. d removes exactly those columns.",
+  },
+  {
+    title = "Type on every line", teach = "In a block, I types at the start of the block on every line.",
+    brief = "Comment out all three lines with '# '.",
+    text = "a\nb\nc", cursor = { 1, 0 }, expect = { text = "# a\n# b\n# c" },
+    solution = "<C-v>jjI# <Esc>",
+    why = "<C-v> + I + text + <Esc> edits every line at once. A appends after the block, $A at the end of every line.",
+  },
+  {
+    title = "Boss: bullet list", boss = true,
+    teach = "A block, a count and a change.",
+    brief = "Turn 'item' into '-' on every line.",
+    text = "item one\nitem two\nitem three", cursor = { 1, 0 }, expect = { text = "- one\n- two\n- three" },
+    solution = "<C-v>jj3lc-<Esc>",
+    why = "<C-v>jj3l selects the four letters of 'item' on three lines, c- replaces them all at once.",
+  },
+}
