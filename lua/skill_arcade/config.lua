@@ -25,6 +25,12 @@ M.defaults = {
     enabled = true, -- include synced community challenges in runs
     url = "https://dev-vinicius-andrade.github.io/nvim-skill-arcade-challenges/community.json", -- built by CI (GitHub Pages)
   },
+  -- AI challenges: model-written ones published with the community bundle (`:ArcadeSync`), played from `:ArcadeAI`.
+  -- They stay out of normal runs and practice unless in_runs = true (the daily set uses today's own either way).
+  ai = {
+    in_runs = false,
+    latest = 5, -- how many "play the latest" starts
+  },
   -- optional model-generated challenges: "none" | "anthropic" | "openai" (any OpenAI-compatible endpoint)
   provider = "none",
   generate_count = 3,

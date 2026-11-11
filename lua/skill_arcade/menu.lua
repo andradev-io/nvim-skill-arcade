@@ -8,7 +8,7 @@ local NS = vim.api.nvim_create_namespace("skill_arcade_menu")
 local COMMANDS = {
   menu = "ArcadeMenu", run = "ArcadeRun", daily = "ArcadeDaily", practice = "ArcadePractice",
   toggle = "ArcadeToggle", skip = "ArcadeSkip", hint = "ArcadeHint", next = "ArcadeNext",
-  quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync",
+  quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync", ai = "ArcadeAI",
 }
 
 local function api()
@@ -75,6 +75,7 @@ function M.items()
       item("g", "Start a run (difficulty ramps up)", "run", function() a.run() end),
       item("d", "Daily challenge (same for everyone)", "daily", function() a.daily() end),
       item("r", "Practice an area (no lives)", "practice", function() a.practice() end),
+      item("i", "AI challenges (model-written)", "ai", function() a.ai() end),
       item("t", "Stats and personal bests", "stats", function() a.stats() end),
       item("e", "What the game found in my setup", "setup", function() a.setup_report() end),
       item("y", "Sync community challenges", "sync", function() a.sync() end),

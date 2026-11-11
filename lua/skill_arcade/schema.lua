@@ -217,6 +217,9 @@ function M.validate(raw)
   end
   take("date", day, eday)
   c.generated = raw.generated == true or nil
+  -- provenance of model-written challenges: the model id and "v<file version>:<prompt hash>"
+  take("model", str(raw.model, 100, "model"))
+  take("prompt", str(raw.prompt, 40, "prompt"))
   take("solution", str(raw.solution, 120, "solution", true))
   if c.solution then
     err = err or M.unsafe_solution(c.solution)

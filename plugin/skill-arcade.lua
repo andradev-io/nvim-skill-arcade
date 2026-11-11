@@ -40,6 +40,16 @@ vim.api.nvim_create_user_command("ArcadePractice", function(o)
   arcade().practice(o.fargs[1])
 end, { nargs = "?", complete = area_complete, desc = "Practice an area without lives: :ArcadePractice [area]" })
 
+vim.api.nvim_create_user_command("ArcadeAI", function(o)
+  arcade().ai(o.fargs[1])
+end, {
+  nargs = "?",
+  complete = function()
+    return vim.list_extend({ "latest" }, vim.deepcopy(require("skill_arcade.config").all_areas))
+  end,
+  desc = "AI challenges (model-written, from :ArcadeSync): :ArcadeAI [latest | area]",
+})
+
 for _, name in ipairs({ "ArcadeTry", "ArcadeJoin" }) do
   vim.api.nvim_create_user_command(name, function(o)
     arcade().try(o.args)
