@@ -60,7 +60,18 @@ check("refactor sprints cover 6 languages", vim.tbl_count(langs) == 6, vim.inspe
 check("refactor sprints cover levels 1-5", vim.tbl_count(levels) == 5, vim.inspect(levels))
 config.setup({ data_dir = vim.fn.tempname(), refactor_languages = { "go" } })
 local only_go = vim.tbl_filter(function(c) return c.area == "refactor" end, catalog.available({ areas = { "refactor" } }))
-check("refactor_languages keeps only the chosen language", #only_go == 3 and only_go[1].ft == "go", #only_go)
+check("refactor_languages keeps only the chosen language", #only_go >= 3 and only_go[1].ft == "go" and #vim.tbl_filter(function(c) return c.ft ~= "go" end, only_go) == 0, #only_go)
+for _, lang in ipairs({ "typescript", "cs" }) do
+  config.setup({ data_dir = vim.fn.tempname(), refactor_languages = { lang } })
+  local mine = vim.tbl_filter(function(c) return c.area == "refactor" end, catalog.available({ areas = { "refactor" } }))
+  local lv = {}
+  for _, c in ipairs(mine) do
+    lv[c.level] = true
+    assert(c.ft == lang)
+  end
+  check(lang .. " refactor sprints: at least 15, every level", #mine >= 15 and vim.tbl_count(lv) == 5, #mine)
+  check(lang .. " files get the right extension", mine[1].ext == (lang == "cs" and "cs" or "ts"), mine[1].ext)
+end
 config.setup({ data_dir = vim.fn.tempname() })
 local ids = {}
 for _, ch in ipairs(all) do
