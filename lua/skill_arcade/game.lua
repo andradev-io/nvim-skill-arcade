@@ -499,7 +499,11 @@ local function finish_challenge(ok, reason)
     store.save_bests(bests)
   end
   run.results[#run.results + 1] = r
-  if ok and not run.try then -- an opt-in extra: sends the cleared round when you are signed in and chose to
+  if ok and run.mode == "campaign" then
+    r.stars, r.note = require("skill_arcade.campaign").record(ch, math.max(1, m.keys))
+  end
+  -- an opt-in extra: sends the cleared round when you are signed in and chose to (campaign stages are not on the board)
+  if ok and not run.try and run.mode ~= "campaign" then
     pcall(function() require("skill_arcade.account").maybe_submit(ch, math.max(1, m.keys), secs) end)
   end
   run.keys = run.keys + m.keys
@@ -507,7 +511,7 @@ local function finish_challenge(ok, reason)
   local lesson = coach.lesson(ch, r, envinfo)
   r.lesson = lesson
   local on_retry
-  if run.mode == "practice" then
+  if run.mode == "practice" or run.mode == "campaign" then
     on_retry = function() M.retry() end
   end
   run.result_ui = ui.result(r, lesson, run, function() M.next() end, function() M.quit() end, on_retry)
@@ -539,7 +543,7 @@ end
 M._tick = tick
 
 local function run_label(mode)
-  return ({ run = "run", daily = "daily", practice = "practice" })[mode] or mode
+  return ({ run = "run", daily = "daily", practice = "practice", campaign = "campaign" })[mode] or mode
 end
 
 --- opts: { mode = "run"|"daily"|"practice", deck = {challenges}, countdown? }
@@ -561,7 +565,7 @@ function M.start(opts)
   vim.cmd("tabnew")
   local run = {
     mode = opts.mode or "run", label = run_label(opts.mode or "run"), deck = opts.deck, index = 1,
-    lives_on = (opts.mode ~= "practice") and (config.options.lives or 0) > 0,
+    lives_on = (opts.mode ~= "practice" and opts.mode ~= "campaign") and (config.options.lives or 0) > 0,
     lives = config.options.lives, score = 0, streak = 0, best_streak = 0, results = {}, keys = 0,
     state = nil, tab = vim.api.nvim_get_current_tabpage(), win = vim.api.nvim_get_current_win(),
     origin = origin, base_tabs = base, saved = saved, started = os.time(), clock0 = now(),
@@ -661,6 +665,10 @@ function M.next()
   if run.result_ui then
     pcall(run.result_ui.close)
     run.result_ui = nil
+  end
+  local last = run.results[#run.results]
+  if run.mode == "campaign" and last and not last.ok then
+    return M.retry() -- a stage is not passed until it is cleared
   end
   if run.index >= #run.deck and run.mode ~= "practice" or (run.lives_on and run.lives <= 0) then
     return finish_run("done")

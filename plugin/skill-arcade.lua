@@ -38,6 +38,20 @@ vim.api.nvim_create_user_command("ArcadeRun", function(o)
   arcade().run(o.fargs[1])
 end, { nargs = "?", desc = "Start a run: :ArcadeRun [level 1-5]" })
 
+vim.api.nvim_create_user_command("ArcadeCampaign", function(o)
+  arcade().campaign(o.fargs[1])
+end, {
+  nargs = "?",
+  complete = function()
+    local out = { "continue", "reset" }
+    for _, w in ipairs(require("skill_arcade.campaign.worlds")) do
+      out[#out + 1] = w.id
+    end
+    return out
+  end,
+  desc = "Learn Vim, stage by stage: :ArcadeCampaign [continue | reset | <world>]",
+})
+
 vim.api.nvim_create_user_command("ArcadePractice", function(o)
   arcade().practice(o.fargs[1])
 end, { nargs = "?", complete = area_complete, desc = "Practice an area without lives: :ArcadePractice [area]" })

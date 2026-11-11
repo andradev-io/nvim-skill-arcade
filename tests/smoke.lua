@@ -718,6 +718,90 @@ for _, name in ipairs({ "ArcadeLogin", "ArcadeLogout", "ArcadeAccount" }) do
   check("command " .. name, vim.fn.exists(":" .. name) == 2)
 end
 
+-- ── campaign ───────────────────────────────────────────────────────────────
+do
+  local campaign = require("skill_arcade.campaign")
+  config.setup({ data_dir = vim.fn.tempname(), keymaps = false })
+  campaign.reset_cache()
+  local worlds = campaign.worlds()
+  check("campaign has worlds", #worlds >= 2, #worlds)
+  local seen = {}
+  local total = 0
+  for _, w in ipairs(worlds) do
+    check("world " .. w.id .. " has stages", #w.stages >= 8, #w.stages)
+    check("world " .. w.id .. " ends with a boss", w.stages[#w.stages].boss == true)
+    for _, st in ipairs(w.stages) do
+      total = total + 1
+      check("campaign unique id " .. st.id, not seen[st.id])
+      seen[st.id] = true
+      check("campaign stage has a teaching line " .. st.id, type(st.teach) == "string" and st.teach ~= "" and st.why ~= nil)
+      -- real engine: not solved at the start, solved by the reference keys
+      game.start({ mode = "campaign", deck = { st }, countdown = 0 })
+      check(st.id .. " starts running", game.run and game.state() == "running")
+      check(st.id .. " no lives in the campaign", game.run and game.run.lives_on == false)
+      check(st.id .. " NOT solved at start", game.evaluate() == false)
+      keys.feed(st.solution)
+      check(st.id .. " solved by reference keys", game.evaluate() == true,
+        vim.inspect({ lines = vim.api.nvim_buf_get_lines(0, 0, -1, false) }))
+      game._tick()
+      local r = game.run and game.run.results[1]
+      check(st.id .. " clears with 3 stars at par", r and r.ok and r.stars == 3, r and r.stars)
+      if game.run and game.run.result_ui then
+        pcall(game.run.result_ui.close)
+      end
+      quiet_abort()
+    end
+  end
+  check("campaign has 20+ stages", total >= 20, total)
+
+  -- progress, stars, unlocking (fresh data dir)
+  config.setup({ data_dir = vim.fn.tempname(), keymaps = false })
+  local w1, w2 = worlds[1], worlds[2]
+  check("stars: par or better is 3", campaign.stars({ par_keys = 4 }, 4) == 3)
+  check("stars: within 1.5x par is 2", campaign.stars({ par_keys = 4 }, 6) == 2)
+  check("stars: slower is still 1", campaign.stars({ par_keys = 4 }, 40) == 1)
+  check("first stage open, second locked", campaign.stage_unlocked(w1, 1) and not campaign.stage_unlocked(w1, 2))
+  check("world 2 locked at the start", not campaign.world_unlocked(w2))
+  local s, note = campaign.record(w1.stages[1], 99)
+  check("record: slow clear = 1 star", s == 1 and note == nil, s)
+  check("record: next stage opens", campaign.stage_unlocked(w1, 2))
+  local s2, note2 = campaign.record(w1.stages[1], 1)
+  check("record: better run raises stars, never lowers", s2 == 3 and note2 and note2:find("stars up", 1, true), vim.inspect({ s2, note2 }))
+  campaign.record(w1.stages[1], 99)
+  check("record: slower run keeps the best", campaign.stars_of(w1.stages[1].id) == 3)
+  local nxt = campaign.next_stage()
+  check("next_stage is the second stage", nxt and nxt.id == w1.stages[2].id, nxt and nxt.id)
+  local last_note
+  for i = 2, #w1.stages do
+    local _, n = campaign.record(w1.stages[i], 1)
+    last_note = n or last_note
+  end
+  check("clearing the world announces it", last_note and last_note:find("WORLD COMPLETE", 1, true), last_note)
+  check("world 2 opens when world 1 is cleared", campaign.world_unlocked(w2) and campaign.stage_unlocked(w2, 1))
+  check("progress is saved to disk", store.campaign().stages[w1.stages[1].id].stars == 3)
+  campaign.reset()
+  check("reset clears the progress", campaign.stars_of(w1.stages[1].id) == 0 and not campaign.world_unlocked(w2))
+  config.setup({ data_dir = vim.fn.tempname(), keymaps = false, campaign = { unlock_all = true } })
+  check("unlock_all opens everything", campaign.world_unlocked(w2) and campaign.stage_unlocked(w1, 5))
+  config.setup({ data_dir = vim.fn.tempname(), keymaps = false })
+
+  -- a missed stage is retried, not skipped; no lives are lost
+  local st = w1.stages[1]
+  game.start({ mode = "campaign", deck = { st, w1.stages[2] }, countdown = 0 })
+  game.run.cur.ch.time_limit = -1
+  game._tick()
+  local missed = game.run.results[1]
+  check("campaign: a time-out is not a clear and costs no life", missed and not missed.ok and game.run.lives_on == false)
+  if game.run.result_ui then
+    pcall(game.run.result_ui.close)
+    game.run.result_ui = nil
+  end
+  game.next()
+  check("campaign: next after a miss retries the same stage", game.run.index == 1 and game.run.cur.ch.id == st.id, game.run.index)
+  quiet_abort()
+  check("command ArcadeCampaign", vim.fn.exists(":ArcadeCampaign") == 2)
+end
+
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
 check("lazy example loads", type(spec) == "table" and spec[1][1] == "andradev-io/nvim-skill-arcade")

@@ -74,4 +74,35 @@ function M.attach(ch, buf, state, group)
   end
 end
 
+--- builds a track challenge from a text map. Markers in the map: S = start, X = goal, 1..6 = checkpoints. A spec may
+--- give `start`, `goal` or `checkpoints` explicitly instead ({row, col}, row 1-based, col 0-based).
+function M.build(spec)
+  local lines = vim.split(spec.map, "\n", { plain = true })
+  local start, goal, cps = spec.start, spec.goal, spec.checkpoints
+  local found = {}
+  for r, line in ipairs(lines) do
+    for c = 1, #line do
+      local ch = line:sub(c, c)
+      if ch == "S" and not start then
+        start = { r, c - 1 }
+      elseif ch == "X" and not goal then
+        goal = { r, c - 1 }
+      elseif ch:match("^[1-6]$") and not spec.checkpoints then
+        found[tonumber(ch)] = { r, c - 1 }
+      end
+    end
+  end
+  if not cps and #found > 0 then
+    cps = {}
+    for i = 1, #found do
+      cps[i] = found[i]
+    end
+  end
+  return {
+    id = spec.id, title = spec.title, level = spec.level, brief = spec.brief, text = spec.map, cursor = start,
+    track = { goal = goal, checkpoints = cps, forbid = spec.forbid },
+    solution = spec.solution, why = spec.why, hint = spec.hint, par_seconds = spec.par_seconds,
+  }
+end
+
 return M

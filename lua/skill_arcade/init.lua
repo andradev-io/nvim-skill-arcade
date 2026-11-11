@@ -6,7 +6,7 @@ local store = require("skill_arcade.store")
 local M = {}
 
 local MAP_DESC = {
-  menu = "Arcade: menu", run = "Arcade: start a run", daily = "Arcade: daily challenge",
+  menu = "Arcade: menu", campaign = "Arcade: campaign", run = "Arcade: start a run", daily = "Arcade: daily challenge",
   practice = "Arcade: practice an area", toggle = "Arcade: pause / resume", skip = "Arcade: skip",
   hint = "Arcade: hint", next = "Arcade: next challenge", quit = "Arcade: quit run",
   stats = "Arcade: stats", setup = "Arcade: my setup",
@@ -41,6 +41,11 @@ function M.run(level)
     mode = "run",
     deck = catalog.build_run({ n = config.options.run_length, level = tonumber(level) or current_level() }),
   })
+end
+
+--- the "Learn Vim" campaign: :ArcadeCampaign [continue | reset | <world id>]
+function M.campaign(arg)
+  require("skill_arcade.campaign").open(arg)
 end
 
 function M.daily()

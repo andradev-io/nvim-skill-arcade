@@ -1,0 +1,82 @@
+-- World 2, Quarry: editing. Edit stages have `text`, the cursor `cursor = { row, col }` (col 0-based) and the
+-- `expect = { text = ... }` the buffer must end as. `solution` is replayed by the tests, its key count is the par.
+return {
+  {
+    title = "Delete a letter", teach = "x deletes the character under the cursor.",
+    brief = "The cursor is on the extra l. Make the word 'hello'.",
+    text = "helllo", cursor = { 1, 3 }, expect = { text = "hello" },
+    solution = "x",
+    why = "x cuts one character. 3x cuts three. X cuts the one before the cursor.",
+  },
+  {
+    title = "Delete a line", teach = "dd deletes the whole line.",
+    brief = "Remove the line that says 'bin me'.",
+    text = "keep\nbin me\nkeep", cursor = { 2, 0 }, expect = { text = "keep\nkeep" },
+    solution = "dd",
+    why = "d is 'delete' and waits for a motion; dd means 'this line'. 3dd deletes three lines.",
+  },
+  {
+    title = "Delete a word", teach = "dw deletes from the cursor to the next word.",
+    brief = "The cursor is on the first 'big'. Leave a single one.",
+    text = "a big big day", cursor = { 1, 2 }, expect = { text = "a big day" },
+    solution = "dw",
+    why = "d + any motion works: dw is 'delete a word', d$ deletes to the end of the line, d0 to the start.",
+  },
+  {
+    title = "Insert at the cursor", teach = "i starts typing before the cursor. <Esc> stops.",
+    brief = "Put 'I ' in front of the sentence so it reads 'I love Vim'.",
+    text = "love Vim", cursor = { 1, 0 }, expect = { text = "I love Vim" },
+    solution = "iI <Esc>",
+    why = "i enters Insert mode. Type, then <Esc> to return to Normal mode, where all the other keys live.",
+  },
+  {
+    title = "Append at the end", teach = "A types at the end of the line.",
+    brief = "Add an exclamation mark at the end.",
+    text = "hello", cursor = { 1, 0 }, expect = { text = "hello!" },
+    solution = "A!<Esc>",
+    why = "A jumps to the end of the line and starts typing. a is the same one character after the cursor, I is the start of the line.",
+  },
+  {
+    title = "Open a line", teach = "o opens a new line below and starts typing.",
+    brief = "Add the missing line 'line two' between the others.",
+    text = "line one\nline three", cursor = { 1, 0 }, expect = { text = "line one\nline two\nline three" },
+    solution = "oline two<Esc>",
+    why = "o opens below, O opens above. Both leave you in Insert mode on the new line.",
+  },
+  {
+    title = "Undo", teach = "u undoes the last change.",
+    brief = "Delete two words, then undo the second delete. You should end with 'two three'.",
+    text = "one two three", cursor = { 1, 0 }, expect = { text = "two three" },
+    solution = "dwdwu",
+    why = "u undoes, <C-r> redoes. Nothing you do in Vim is a one-way door.",
+  },
+  {
+    title = "Change a word", teach = "cw deletes a word and lets you type the new one.",
+    brief = "Change 'cat' into 'dog'. The cursor is on the c.",
+    text = "the cat sat", cursor = { 1, 4 }, expect = { text = "the dog sat" },
+    solution = "cwdog<Esc>",
+    why = "c is 'change': like d, but it leaves you in Insert mode. cc changes the whole line, C changes to the end.",
+  },
+  {
+    title = "Copy and paste", teach = "yy copies a line, p pastes it below.",
+    brief = "Duplicate the first line.",
+    text = "echo\nzap", cursor = { 1, 0 }, expect = { text = "echo\necho\nzap" },
+    solution = "yyp",
+    why = "y is 'yank' (copy). yy yanks a line, p pastes after the cursor (or below, for a line), P pastes before.",
+  },
+  {
+    title = "Repeat it", teach = ". repeats your last change.",
+    brief = "Delete the first two lines, so only 'keep' is left.",
+    text = "a\nb\nkeep", cursor = { 1, 0 }, expect = { text = "keep" },
+    solution = "dd.",
+    why = ". is the cheapest key in Vim: it replays the last change wherever the cursor is now.",
+  },
+  {
+    title = "Boss: the typo quarry", boss = true,
+    teach = "Everything so far: delete, motion, repeat.",
+    brief = "Fix the line so it reads 'the cat sat': remove the extra word and the extra letter.",
+    text = "the the cat satt", cursor = { 1, 0 }, expect = { text = "the cat sat" },
+    solution = "dw$x",
+    why = "dw drops the first 'the ', $ jumps to the last character and x removes the second t.",
+  },
+}

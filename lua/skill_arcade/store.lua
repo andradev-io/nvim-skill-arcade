@@ -61,6 +61,17 @@ function M.save_bests(b)
   return write_json(dir() .. "/bests.json", b)
 end
 
+--- campaign progress: { stages = { [challenge id] = {stars, keys, plays} } }
+function M.campaign()
+  local c = read_json(dir() .. "/campaign.json", {})
+  c.stages = c.stages or {}
+  return c
+end
+
+function M.save_campaign(c)
+  return write_json(dir() .. "/campaign.json", c)
+end
+
 function M.history()
   return read_json(dir() .. "/history.json", {})
 end

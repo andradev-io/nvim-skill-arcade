@@ -31,6 +31,10 @@ M.defaults = {
     in_runs = false,
     latest = 5, -- how many "play the latest" starts
   },
+  -- campaign ("Learn Vim", :ArcadeCampaign): stages open in order. unlock_all = true lets you jump anywhere.
+  campaign = {
+    unlock_all = false,
+  },
   -- optional sign-in to send finished rounds to the leaderboard (nothing happens until you run :ArcadeLogin).
   -- The leaderboard only knows you by a derived player code, never your name, e-mail or GitHub account.
   account = {
@@ -58,6 +62,7 @@ M.defaults = {
   -- <leader>G (capital) avoids the common <leader>g / <leader>r groups.
   keymaps = {
     menu = "<leader>Gm", -- state-aware menu: start, pause, skip, quit ...
+    campaign = "<leader>Gc", -- the "Learn Vim" campaign
     run = "<leader>Gg", -- start a run
     daily = "<leader>Gd",
     practice = "<leader>Gr", -- pick an area and practice without lives

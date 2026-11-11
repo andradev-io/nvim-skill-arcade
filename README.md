@@ -7,6 +7,30 @@ round a short lesson: a better way to do it, and which of *your* installed plugi
 Pure Lua, no dependencies. Sibling of [nvim-learn-refactor](../nvim-learn-refactor) (refactoring exercises);
 this one is gameplay-driven.
 
+## Campaign: learn Vim from zero
+
+New to Vim? `:ArcadeCampaign` is a row of short stages, like the levels of a platformer. Each stage teaches
+**one** new key (shown first in the box on screen), then asks you to use it. No lives, no clock pressure: miss a stage
+and you simply try it again. Clear a stage to open the next; clear every stage of a world (the last one is a boss that
+mixes what you learned) to open the next world.
+
+Stars come from the number of keys: three stars at the reference solution's key count or better, two within 1.5x, one for
+any clear. Replay a stage any time to raise its stars. Points count towards your profile; campaign stages are not sent
+to the leaderboard.
+
+| world | topic | what it teaches |
+|---|---|---|
+| 1 Meadow | Moving around | `h j k l`, counts, `w b e`, `0 $` |
+| 2 Quarry | Editing | `x dd dw`, `i a A o`, `u`, `cw`, `yy p`, `.` |
+
+`:ArcadeCampaign` opens the world list (with a "Continue" entry), `:ArcadeCampaign continue` jumps straight to your next
+stage, `:ArcadeCampaign w2` opens one world, `:ArcadeCampaign reset` forgets your campaign progress. Set
+`campaign = { unlock_all = true }` to jump anywhere.
+
+Next worlds (planned, one file each in `lua/skill_arcade/campaign/`): Search, Text objects, Visual mode, Registers and
+macros, Files/windows/marks, and a final boss rush with `h j k l` and the arrow keys switched off. A new world is a
+list of stages in a file plus one line in `campaign/worlds.lua`.
+
 ## How it plays
 
 1. `:ArcadeMenu` (default `<leader>Gm`) -> **Start a run**.
@@ -123,6 +147,7 @@ maps the defaults.
 | action | command | default key |
 |---|---|---|
 | menu (only offers what is valid now) | `:ArcadeMenu` / `:Arcade` | `<leader>Gm` |
+| the Learn Vim campaign | `:ArcadeCampaign [continue|reset|world]` | `<leader>Gc` |
 | start a run | `:ArcadeRun [level]` | `<leader>Gg` |
 | daily set | `:ArcadeDaily` | `<leader>Gd` |
 | practice an area | `:ArcadePractice [area]` | `<leader>Gr` |

@@ -6,7 +6,7 @@ local M = {}
 local NS = vim.api.nvim_create_namespace("skill_arcade_menu")
 
 local COMMANDS = {
-  menu = "ArcadeMenu", run = "ArcadeRun", daily = "ArcadeDaily", practice = "ArcadePractice",
+  menu = "ArcadeMenu", campaign = "ArcadeCampaign", run = "ArcadeRun", daily = "ArcadeDaily", practice = "ArcadePractice",
   toggle = "ArcadeToggle", skip = "ArcadeSkip", hint = "ArcadeHint", next = "ArcadeNext",
   quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync", ai = "ArcadeAI", login = "ArcadeLogin", account = "ArcadeAccount",
 }
@@ -72,6 +72,7 @@ function M.items()
   local a = api()
   if not st then
     local rows = {
+      item("c", "Campaign: learn Vim step by step", "campaign", function() a.campaign() end),
       item("g", "Start a run (difficulty ramps up)", "run", function() a.run() end),
       item("d", "Daily challenge (same for everyone)", "daily", function() a.daily() end),
       item("r", "Practice an area (no lives)", "practice", function() a.practice() end),
