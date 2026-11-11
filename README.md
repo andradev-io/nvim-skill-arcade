@@ -37,7 +37,7 @@ Modes: **run** (ramped difficulty), **daily** (same 5 challenges for everyone ea
 
 Rank: **S** keys <= par and time <= par; **A** <= 1.5x keys / 2x time; **B** <= 2x keys; else **C**.
 
-## Skill areas (100+ built-in challenges)
+## Skill areas (150+ built-in challenges)
 
 `motions`, `textobjects`, `editing`, `search` (:s, :g), `macros`, `registers`, `marks` (marks + jumplist),
 `windows` (splits, tabs, buffers), `quickfix`, `diagnostics` (jump / float / to quickfix - planted by the game, so it
@@ -47,11 +47,14 @@ Restrict them: `areas = { "motions", "textobjects" }`.
 
 ### Refactor sprints (`refactor`)
 
-Small, fast code refactors (10-40 s): rename a symbol, extract a variable or function, swap arguments, invert an `if`,
-inline a variable, loop to map/filter, callback to `async`/`await`, join/split lines, change a signature, reorder
+Small, fast code refactors (10-60 s): rename a symbol, extract a variable, function, type alias or interface, swap arguments,
+invert an `if`, optional chaining, `??`, template literals and string interpolation, LINQ and array methods, records and
+primary constructors, switch to a lookup or a `switch` expression,
+inline a variable, loop to map/filter, `.then` to `async`/`await`, join/split lines, change a signature, reorder
 fields. Only the END STATE counts: the buffer must equal the refactored code (whitespace trimmed like every challenge),
-and for Lua the result is also run, so the behaviour must survive. The snippets are Lua, TypeScript, JavaScript, Go,
-C# and Python; `refactor_languages = { "lua", "go" }` limits them (filetypes `lua`, `typescript`, `javascript`, `go`,
+and for Lua the result is also run, so the behaviour must survive. The snippets are mostly TypeScript and C# (about 19 each,
+levels 1-5), plus Lua, JavaScript, Go, and Python; `refactor_languages = { "lua", "go" }` limits them (filetypes `lua`,
+`typescript`, `javascript`, `go`,
 `cs`, `python`). Some sprints feature a plugin group you have (search/replace UI, extra text objects, surround) and all of
 them are solvable with native keys. They join runs, daily and practice like every area.
 
