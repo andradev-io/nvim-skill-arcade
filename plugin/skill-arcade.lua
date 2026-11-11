@@ -25,6 +25,8 @@ local simple = {
   ArcadeSetup = { "setup_report", "Show which of your plugins the game found" },
   ArcadeDaily = { "daily", "Daily challenge set" },
   ArcadeSync = { "sync", "Download community challenges (data only, validated)" },
+  ArcadeLogin = { "login", "Sign in (optional) to send your finished rounds to the leaderboard" },
+  ArcadeLogout = { "logout", "Sign out of the leaderboard" },
 }
 for name, def in pairs(simple) do
   vim.api.nvim_create_user_command(name, function()
@@ -58,6 +60,13 @@ for _, name in ipairs({ "ArcadeTry", "ArcadeJoin" }) do
     desc = "Play a draft once, nothing is saved: :" .. name .. " <ARC1.code | + | file.json>",
   })
 end
+
+vim.api.nvim_create_user_command("ArcadeAccount", function(o)
+  arcade().account(o.args ~= "" and o.args or nil)
+end, {
+  nargs = "?", complete = function() return { "on", "off" } end,
+  desc = "Leaderboard account: status, or :ArcadeAccount on|off to send finished rounds or not",
+})
 
 vim.api.nvim_create_user_command("ArcadeGenerate", function(o)
   arcade().generate(o.fargs[1], o.fargs[2])

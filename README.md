@@ -103,7 +103,7 @@ Copy [`examples/lazy.lua`](examples/lazy.lua) to `lua/plugins/skill-arcade.lua`:
 {
   "andradev-io/nvim-skill-arcade",
   cmd = { "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadeSkip",
-          "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync",
+          "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync", "ArcadeLogin", "ArcadeLogout", "ArcadeAccount",
           "ArcadeAI", "ArcadeTry", "ArcadeJoin" },
   keys = {
     { "<leader>Gm", "<cmd>ArcadeMenu<cr>", desc = "Arcade: menu" },
@@ -135,6 +135,7 @@ maps the defaults.
 | what the game found in my setup | `:ArcadeSetup` | `<leader>Ge` |
 | generate challenges (model) | `:ArcadeGenerate [area] [level]` | - |
 | download community challenges | `:ArcadeSync` | - |
+| sign in to send scores (optional) | `:ArcadeLogin` / `:ArcadeLogout` / `:ArcadeAccount [on|off]` | - |
 | AI challenges (model-written, newest first) | `:ArcadeAI [latest | area]` | - |
 | play a draft once (room code, clipboard `+`, or file) | `:ArcadeJoin <code>` / `:ArcadeTry <code|+|file>` | - |
 
@@ -184,6 +185,24 @@ Anyone can design a challenge on the website of
 
 `:ArcadeSync` (menu: *Sync community challenges*) downloads the published bundle. They then join runs and practice,
 marked *community*. Sync is manual and https-only; set `community = { enabled = false }` to ignore them.
+
+## Leaderboard (optional)
+
+You never need an account. If you want your results on the leaderboard of <https://arcade.nvim.andradev.io>:
+
+1. `:ArcadeLogin` (menu: *Sign in to send scores*). The game shows a short code and opens the approval page; sign in
+   with GitHub there and confirm the code. The code is also copied to your clipboard.
+2. It asks whether finished rounds should be sent automatically. Change your mind any time with `:ArcadeAccount on|off`;
+   `:ArcadeAccount` shows your status and `:ArcadeLogout` signs you out.
+
+What is sent: the challenge id, how many keys you used and how long it took, only for a challenge you cleared, and only
+when you are signed in and chose to send. The board keeps your best result per challenge (fewest keys, then least time)
+under a **player code** derived from your login; it never receives your name, e-mail or GitHub account. Rounds from
+`:ArcadeTry` are never sent. The board is an honor system (the numbers come from your machine).
+
+The token is stored in `<data_dir>/account.json` (mode 0600) and only sent to the score API; requests go through
+`curl` with the headers on stdin, so a token never shows in a process list. Needs `curl`. `account = { enabled = false }`
+turns the feature off; `account.api` points to another score service.
 
 **AI challenges.** The bundle also carries a model-written collection (`ai`), published by a daily workflow after the same
 gates as any contribution (safety schema, reference solution replayed in real Neovim, no duplicates). They have their own

@@ -31,6 +31,13 @@ M.defaults = {
     in_runs = false,
     latest = 5, -- how many "play the latest" starts
   },
+  -- optional sign-in to send finished rounds to the leaderboard (nothing happens until you run :ArcadeLogin).
+  -- The leaderboard only knows you by a derived player code, never your name, e-mail or GitHub account.
+  account = {
+    enabled = true,
+    api = "https://api.arcade.nvim.andradev.io",
+    open_browser = true, -- open the approval page for you (the code is also copied to the clipboard)
+  },
   -- optional model-generated challenges: "none" | "anthropic" | "openai" (any OpenAI-compatible endpoint)
   provider = "none",
   generate_count = 3,
