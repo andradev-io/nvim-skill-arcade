@@ -6,7 +6,10 @@ local keys = require("skill_arcade.keys")
 local M = {}
 
 M.PRESETS = { diagnostics = true, splits = true, alt_buffer = true, quickfix_hits = true }
-M.FILETYPES = { text = true, lua = true, python = true, javascript = true, markdown = true, json = true, html = true }
+M.FILETYPES = {
+  text = true, lua = true, python = true, javascript = true, markdown = true, json = true, html = true,
+  typescript = true, go = true, cs = true,
+}
 M.GROUPS = { "jump", "surround", "textobjects", "comment", "picker", "keyhints", "files", "bookmarks", "trouble",
   "replace", "multicursor", "move", "treesitter" }
 

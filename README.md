@@ -41,9 +41,19 @@ Rank: **S** keys <= par and time <= par; **A** <= 1.5x keys / 2x time; **B** <= 
 
 `motions`, `textobjects`, `editing`, `search` (:s, :g), `macros`, `registers`, `marks` (marks + jumplist),
 `windows` (splits, tabs, buffers), `quickfix`, `diagnostics` (jump / float / to quickfix - planted by the game, so it
-works with or without an LSP), `track` (reach a goal on a text-grid map, see below), `plugins` (featured challenges for
-plugins you have).
+works with or without an LSP), `track` (reach a goal on a text-grid map, see below), `refactor` (refactor sprints, see
+below), `plugins` (featured challenges for plugins you have).
 Restrict them: `areas = { "motions", "textobjects" }`.
+
+### Refactor sprints (`refactor`)
+
+Small, fast code refactors (10-40 s): rename a symbol, extract a variable or function, swap arguments, invert an `if`,
+inline a variable, loop to map/filter, callback to `async`/`await`, join/split lines, change a signature, reorder
+fields. Only the END STATE counts: the buffer must equal the refactored code (whitespace trimmed like every challenge),
+and for Lua the result is also run, so the behaviour must survive. The snippets are Lua, TypeScript, JavaScript, Go,
+C# and Python; `refactor_languages = { "lua", "go" }` limits them (filetypes `lua`, `typescript`, `javascript`, `go`,
+`cs`, `python`). Some sprints feature a plugin group you have (search/replace UI, extra text objects, surround) and all of
+them are solvable with native keys. They join runs, daily and practice like every area.
 
 ### Tracks (`track`)
 
@@ -133,6 +143,7 @@ opts = {
   run_length = 6, daily_length = 5, lives = 3, countdown = 3,
   level = nil,            -- force the starting difficulty 1-5 (default: your saved level)
   plugin_challenges = true,
+  refactor_languages = nil, -- e.g. { "lua", "go" }: limit the refactor sprints to these languages
   hud = true,
   keymaps = { ... } | false,
   data_dir = vim.fn.stdpath("data") .. "/skill-arcade",
