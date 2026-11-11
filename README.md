@@ -37,7 +37,7 @@ Modes: **run** (ramped difficulty), **daily** (same 5 challenges for everyone ea
 
 Rank: **S** keys <= par and time <= par; **A** <= 1.5x keys / 2x time; **B** <= 2x keys; else **C**.
 
-## Skill areas (55+ built-in challenges)
+## Skill areas (100+ built-in challenges)
 
 `motions`, `textobjects`, `editing`, `search` (:s, :g), `macros`, `registers`, `marks` (marks + jumplist),
 `windows` (splits, tabs, buffers), `quickfix`, `diagnostics` (jump / float / to quickfix - planted by the game, so it
@@ -63,7 +63,7 @@ checkpoints `1`..`6`. Only the end state is judged (cursor on the goal, every ch
 untouched), so your own keybinds and plugins work. The HUD shows checkpoint progress and the rules of the map.
 
 Some tracks switch key families off so the motions you have not practised are the only way through: `hjkl`,
-`arrows`, `mouse` (buffer-local, only on that map). Ten built-in tracks run from `$` and `f{char}` (level 1) to
+`arrows`, `mouse` (buffer-local, only on that map). Sixteen built-in tracks run from `$` and `f{char}` (level 1) to
 `%`, `}`, marks, `{n}G`, `-`/`+` and search with checkpoints and rules (level 5).
 
 In a challenge file a track is data:

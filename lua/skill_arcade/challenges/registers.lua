@@ -23,4 +23,28 @@ return {
     expect = { text = "keep me\nend\nkeep me" },
     why = '`"_` is the black-hole register: `"_dd` deletes without overwriting what you yanked.',
   },
+  {
+    id = "yank-end", title = "Copy to the bottom", level = 1,
+    brief = "Copy the first line and paste it as a new last line.",
+    text = "first\nmiddle\nlast",
+    solution = "yyGp",
+    expect = { text = "first\nmiddle\nlast\nfirst" },
+    why = "`yy` yanks the line, `G` goes to the end, `p` pastes below. `:1t$` does it without moving the cursor.",
+  },
+  {
+    id = "paste-over", title = "Replace with what you copied", level = 3,
+    brief = "Copy the word 'fresh', then replace the word 'stale' on line 2 with it.",
+    text = "fresh\nstale word here",
+    solution = "yiwjviwp",
+    expect = { text = "fresh\nfresh word here" },
+    why = "Pasting over a visual selection replaces it. (The replaced text goes to the unnamed register, so use `\"0p` to paste the same yank again.)",
+  },
+  {
+    id = "expr-calc", title = "Let Vim do the math", level = 4,
+    brief = "Finish the line so it reads 'total = 42' by calculating 6 times 7 in insert mode.",
+    text = "total = ",
+    solution = "A<C-r>=6*7<CR><Esc>",
+    expect = { text = "total = 42" },
+    why = "`<C-r>=` in insert mode opens the expression register: type any expression, `<CR>` inserts the result.",
+  },
 }
