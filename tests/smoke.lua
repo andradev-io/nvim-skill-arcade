@@ -379,6 +379,33 @@ check("community challenge joins catalog", cc and cc.community and cc.area == "e
 config.setup({ data_dir = tmp, community = { enabled = false } })
 check("community can be disabled", catalog.by_id("community.swap-words") == nil)
 config.setup({ data_dir = tmp })
+-- daily challenges written for one day (date field) replace the built-in daily set; other days fall back
+do
+  local function day_item(i, level)
+    local c = base()
+    c.id, c.title, c.level, c.date, c.generated = "daily-" .. i, "Daily " .. i, level, "2026-03-05", true
+    return c
+  end
+  local bad_date = base()
+  bad_date.id, bad_date.date = "bad-date", "05/03/2026"
+  check("date must be YYYY-MM-DD", schema.validate(bad_date) == nil)
+  local dd = vim.fn.tempname()
+  vim.fn.mkdir(dd, "p")
+  local fh = io.open(dd .. "/community.json", "w")
+  fh:write(vim.json.encode({ fetched = os.time(), challenges = { day_item(1, 3), day_item(2, 1), day_item(3, 2), day_item(4, 5) } }))
+  fh:close()
+  config.setup({ data_dir = dd })
+  local today = catalog.build_daily("20260305")
+  local ids = vim.tbl_map(function(c) return c.id end, today)
+  check("daily uses the challenges written for that day, easiest first",
+    #today == 4 and ids[1] == "community.daily-2" and ids[4] == "community.daily-4", vim.inspect(ids))
+  local other = catalog.build_daily("20260306")
+  check("other days fall back to the built-in set", #other == config.options.daily_length and not other[1].community)
+  config.setup({ data_dir = dd, community = { enabled = false } })
+  check("daily falls back when community challenges are off", not catalog.build_daily("20260305")[1].community)
+  config.setup({ data_dir = tmp })
+  vim.fn.delete(dd, "rf")
+end
 local sync_err
 config.options.community.url = "http://insecure.example/x.json"
 community.sync(function(_, err) sync_err = err end)

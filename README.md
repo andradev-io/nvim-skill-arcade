@@ -21,7 +21,8 @@ this one is gameplay-driven.
 5. Clear >= 80% without game over and your level goes up; start the next run harder.
 
 Modes: **run** (ramped difficulty), **daily** (same 5 challenges for everyone each day, own best per day),
-**practice** (pick an area, no lives, `r` retries).
+**practice** (pick an area, no lives, `r` retries). The daily set is the challenges the community site published for that
+day (`:ArcadeSync` downloads them, entries with a `date`); without them, or offline, it is a built-in set picked by the date.
 
 ### Scoring
 
