@@ -192,6 +192,13 @@ function M.result(r, lesson, run, on_next, on_quit, on_retry)
       rank_hl(s.rank))
     b:add(string.format(" keys %d (par %d)   time %s (par %s)", r.keys, ch.par_keys, scoring.clock(r.seconds),
       scoring.clock(ch.par_seconds)))
+    if r.stars then
+      b:add(string.format(" stars %s   (%d keys or fewer for three)", require("skill_arcade.campaign").stars_text(r.stars),
+        ch.par_keys), "Special")
+    end
+    if r.note then
+      b:add(" " .. r.note, "DiagnosticOk")
+    end
     local parts = { "base " .. s.base }
     if s.key_bonus > 0 then parts[#parts + 1] = "keys +" .. s.key_bonus end
     if s.time_bonus > 0 then parts[#parts + 1] = "time +" .. s.time_bonus end
@@ -237,7 +244,8 @@ function M.result(r, lesson, run, on_next, on_quit, on_retry)
     b:add(" You typed: " .. lesson.typed, "Comment")
   end
   b:add("")
-  local nextlabel = (run.index >= #run.deck or (run.lives_on and run.lives <= 0)) and "see summary" or "next challenge"
+  local nextlabel = (run.index >= #run.deck or (run.lives_on and run.lives <= 0)) and "see summary"
+    or (run.mode == "campaign" and (r.ok and "next stage" or "try the stage again") or "next challenge")
   local footer = string.format(" <CR> %s    q quit run", nextlabel)
   if on_retry then
     footer = footer .. "    r retry"
