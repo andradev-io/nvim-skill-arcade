@@ -177,6 +177,37 @@ function M.sync()
   end)
 end
 
+local function account()
+  return require("skill_arcade.account")
+end
+
+function M.login()
+  account().login(function(ok, err)
+    if not ok then
+      vim.notify("SkillArcade: sign-in failed: " .. tostring(err), vim.log.levels.ERROR)
+    end
+  end)
+end
+
+function M.logout()
+  account().logout()
+  vim.notify("SkillArcade: signed out. Your local progress is untouched.")
+end
+
+--- :ArcadeAccount [on|off]: status, or choose whether finished rounds are sent
+function M.account(arg)
+  local a = account()
+  if arg == "on" or arg == "off" then
+    if not a.logged_in() then
+      return vim.notify("SkillArcade: sign in first with :ArcadeLogin", vim.log.levels.WARN)
+    end
+    a.set_auto(arg == "on")
+  end
+  a.status(function(msg)
+    vim.notify("SkillArcade: " .. msg)
+  end)
+end
+
 function M.generate(area, level)
   if config.options.provider == "none" then
     return vim.notify('SkillArcade: set provider = "anthropic" or "openai" in setup() first', vim.log.levels.WARN)

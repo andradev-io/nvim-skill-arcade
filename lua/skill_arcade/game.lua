@@ -499,6 +499,9 @@ local function finish_challenge(ok, reason)
     store.save_bests(bests)
   end
   run.results[#run.results + 1] = r
+  if ok and not run.try then -- an opt-in extra: sends the cleared round when you are signed in and chose to
+    pcall(function() require("skill_arcade.account").maybe_submit(ch, math.max(1, m.keys), secs) end)
+  end
   run.keys = run.keys + m.keys
   render_hud()
   local lesson = coach.lesson(ch, r, envinfo)

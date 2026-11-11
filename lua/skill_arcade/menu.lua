@@ -8,7 +8,7 @@ local NS = vim.api.nvim_create_namespace("skill_arcade_menu")
 local COMMANDS = {
   menu = "ArcadeMenu", run = "ArcadeRun", daily = "ArcadeDaily", practice = "ArcadePractice",
   toggle = "ArcadeToggle", skip = "ArcadeSkip", hint = "ArcadeHint", next = "ArcadeNext",
-  quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync", ai = "ArcadeAI",
+  quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync", ai = "ArcadeAI", login = "ArcadeLogin", account = "ArcadeAccount",
 }
 
 local function api()
@@ -79,6 +79,9 @@ function M.items()
       item("t", "Stats and personal bests", "stats", function() a.stats() end),
       item("e", "What the game found in my setup", "setup", function() a.setup_report() end),
       item("y", "Sync community challenges", "sync", function() a.sync() end),
+      require("skill_arcade.account").logged_in()
+          and item("o", "Leaderboard account", "account", function() a.account() end)
+        or item("o", "Sign in to send scores (optional)", "login", function() a.login() end),
     }
     if require("skill_arcade.config").options.provider ~= "none" then
       rows[#rows + 1] = item("n", "Generate new challenges (model)", "generate", function() a.generate() end)

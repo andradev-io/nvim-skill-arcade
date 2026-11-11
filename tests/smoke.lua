@@ -606,6 +606,118 @@ do
   quiet_abort()
 end
 
+-- ── account: sign in (device flow) and sending scores, with a fake http ────
+local account = require("skill_arcade.account")
+account._min_interval = 0
+check("curl config quotes and escapes", (function()
+  local c = account._curl_config({ url = 'https://x/"a"', method = "POST", headers = { Authorization = "Bearer t" }, form = { { "a b", "c&d" } } })
+  return c:find('url = "https://x/\\"a\\""', 1, true) and c:find("data = \"a%20b=c%26d\"", 1, true) and c:find('header = "Authorization: Bearer t"', 1, true)
+end)())
+check("api id strips the community prefix and bad characters",
+  account.api_id("community.swap-words") == "swap-words" and account.api_id("Motions: Next/Word!") == "motions-next-word"
+    and account.api_id(string.rep("a", 90)) == string.rep("a", 64) and account.api_id("...") == nil)
+check("signed out by default", account.logged_in() == false and account.auto() == false)
+
+local calls, polls = {}, 0
+account._http = function(req, cb)
+  calls[#calls + 1] = req
+  local u = req.url
+  if u:find("/api/config", 1, true) then
+    return cb({ status = 200, json = { issuer = "https://auth.example.com/realms/arcade", deviceClient = "arcade-plugin" } })
+  elseif u:find("auth/device", 1, true) then
+    return cb({ status = 200, json = { device_code = "DC", user_code = "ABCD-EFGH", interval = 1, expires_in = 600,
+      verification_uri = "https://auth.example.com/device", verification_uri_complete = "https://auth.example.com/device?user_code=ABCD-EFGH" } })
+  elseif u:find("openid-connect/token", 1, true) and req.form and req.form[1][2]:find("device_code", 1, true) then
+    polls = polls + 1
+    if polls < 3 then
+      return cb({ status = 400, json = { error = "authorization_pending" } })
+    end
+    return cb({ status = 200, json = { access_token = "AT1", refresh_token = "RT1", expires_in = 300 } })
+  elseif u:find("/api/me", 1, true) then
+    return cb({ status = 200, json = { userCode = "K7QMD-3XPV9", results = {} } })
+  elseif u:find("openid-connect/token", 1, true) then -- refresh
+    return cb({ status = 200, json = { access_token = "AT2", refresh_token = "RT2", expires_in = 300 } })
+  elseif u:find("/api/score", 1, true) then
+    return cb({ status = 200, json = { kept = true, best = { keys = req.json.keys, ms = req.json.ms } } })
+  end
+  cb({ status = 404, json = {} })
+end
+local real_select, real_open = vim.ui.select, vim.ui.open
+vim.ui.select = function(items, _, on_choice) on_choice(items[1]) end -- "Send my finished rounds automatically"
+vim.ui.open = function() end
+local done, result
+account.login(function(ok, err) done, result = true, { ok, err } end)
+vim.wait(5000, function() return done end, 10)
+check("device flow signs in after pending answers", done and result[1] == true and polls == 3, vim.inspect(result))
+check("signed in, code stored, auto on", account.logged_in() and account.code() == "K7QMD-3XPV9" and account.auto())
+check("token file is private", (function()
+  if vim.fn.has("win32") == 1 then return true end
+  local perm = vim.fn.getfperm(tmp .. "/account.json")
+  return perm == "rw-------"
+end)(), vim.fn.getfperm(tmp .. "/account.json"))
+check("device request sends no secret, only client and scope", (function()
+  for _, r in ipairs(calls) do
+    if r.url:find("auth/device", 1, true) then
+      return r.form[1][1] == "client_id" and r.form[1][2] == "arcade-plugin"
+    end
+  end
+end)())
+
+local sent
+account._http = (function(inner)
+  return function(req, cb)
+    if req.url:find("/api/score", 1, true) then sent = req end
+    inner(req, cb)
+  end
+end)(account._http)
+local kept, serr
+account.submit("community.swap-words", 7, 4.2, function(k, e) kept, serr = k, e end)
+vim.wait(2000, function() return kept ~= nil or serr ~= nil end, 10)
+check("submit sends id, keys and ms with the bearer token", kept == true and sent and sent.json.challenge == "swap-words"
+  and sent.json.keys == 7 and sent.json.ms == 4200 and sent.headers.Authorization == "Bearer AT1", vim.inspect(sent))
+account.submit("x", 0, 0.01, function() end)
+vim.wait(500, function() return sent.json.keys == 1 and sent.json.ms == 200 end, 10)
+check("keys and time are clamped to the API's limits", sent.json.keys == 1 and sent.json.ms == 200, vim.inspect(sent.json))
+
+-- an expired access token is refreshed before sending
+local d = vim.json.decode(table.concat(vim.fn.readfile(tmp .. "/account.json"), "\n"))
+d.expires_at = os.time() - 10
+vim.fn.writefile({ vim.json.encode(d) }, tmp .. "/account.json")
+local refreshed
+account.submit("swap-words", 5, 2, function(k) refreshed = k end)
+vim.wait(2000, function() return refreshed ~= nil end, 10)
+check("expired access token is refreshed first", refreshed == true and sent.headers.Authorization == "Bearer AT2", vim.inspect(sent.headers))
+
+-- the game only sends when you are signed in AND chose it
+account.set_auto(false)
+local before = #calls
+account.maybe_submit({ id = "swap-words", title = "Swap" }, 5, 2)
+vim.wait(100)
+check("auto off sends nothing", #calls == before)
+account.set_auto(true)
+account.maybe_submit({ id = "swap-words", title = "Swap" }, 5, 2)
+vim.wait(1000, function() return #calls > before end, 10)
+check("auto on sends the finished round", #calls > before)
+
+-- a session the server ended signs you out locally
+account._http = function(req, cb) cb({ status = 400, json = { error = "invalid_grant" } }) end
+d.expires_at = os.time() - 10
+vim.fn.writefile({ vim.json.encode(d) }, tmp .. "/account.json")
+local gone_err
+account.access_token(function(_, e) gone_err = e end)
+vim.wait(1000, function() return gone_err ~= nil end, 10)
+check("ended session clears the account", gone_err and not account.logged_in())
+
+-- logout removes the file
+vim.fn.writefile({ vim.json.encode({ refresh = "r", issuer = "https://auth.example.com/realms/arcade" }) }, tmp .. "/account.json")
+account._http = function(_, cb) cb({ status = 204, text = "" }) end
+account.logout()
+check("logout deletes the stored token", not account.logged_in() and vim.fn.filereadable(tmp .. "/account.json") == 0)
+vim.ui.select, vim.ui.open = real_select, real_open
+for _, name in ipairs({ "ArcadeLogin", "ArcadeLogout", "ArcadeAccount" }) do
+  check("command " .. name, vim.fn.exists(":" .. name) == 2)
+end
+
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
 check("lazy example loads", type(spec) == "table" and spec[1][1] == "andradev-io/nvim-skill-arcade")
