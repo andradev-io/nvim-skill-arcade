@@ -209,6 +209,14 @@ function M.validate(raw)
   take("why", str(raw.why, 300, "why", true))
   take("hint", str(raw.hint, 120, "hint"))
   take("author", str(raw.author, 40, "author"))
+  -- daily challenges: the day (YYYY-MM-DD) a challenge is the featured one, and a flag for model-written ones
+  local day, eday = str(raw.date, 10, "date")
+  if day and not day:match("^%d%d%d%d%-%d%d%-%d%d$") then
+    eday = "date must be YYYY-MM-DD"
+    day = nil
+  end
+  take("date", day, eday)
+  c.generated = raw.generated == true or nil
   take("solution", str(raw.solution, 120, "solution", true))
   if c.solution then
     err = err or M.unsafe_solution(c.solution)

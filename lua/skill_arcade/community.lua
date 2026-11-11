@@ -105,7 +105,7 @@ function M.to_challenge(c)
     id = "community." .. c.id, area = c.area, title = c.title, level = c.level, brief = c.brief, text = c.text,
     cursor = c.cursor, ft = c.ft, loose = c.loose, solution = c.solution, why = c.why, hint = c.hint,
     helps = c.helps, plugin_par = c.plugin_par, par_seconds = c.par_seconds, needs = c.needs,
-    author = c.author, community = true, track = c.track,
+    author = c.author, community = true, track = c.track, date = c.date, generated = c.generated,
     expect = next(text_e) and text_e or nil,
     check = M.check_fn(e),
   }

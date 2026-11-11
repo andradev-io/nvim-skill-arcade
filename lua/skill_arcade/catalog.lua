@@ -298,7 +298,24 @@ end
 
 --- same challenges for everybody on a given day (plugin-featured ones are left out to stay fair)
 function M.build_daily(date)
-  local seed = tonumber(date or os.date("%Y%m%d"))
+  local day = tostring(date or os.date("%Y%m%d"))
+  -- challenges written for this exact day (`:ArcadeSync` downloads them): everybody who synced plays the same set
+  local iso = day:sub(1, 4) .. "-" .. day:sub(5, 6) .. "-" .. day:sub(7, 8)
+  local featured = {}
+  for _, raw in ipairs(require("skill_arcade.community").load()) do
+    if raw.date == iso and not raw.needs then
+      local ok, ch = pcall(M.normalize, raw, raw.area)
+      if ok then
+        featured[#featured + 1] = ch
+      end
+    end
+  end
+  if #featured >= 3 then
+    table.sort(featured, function(a, b) return a.level == b.level and a.id < b.id or a.level < b.level end)
+    return vim.list_slice(featured, 1, config.options.daily_length)
+  end
+  -- no (or too few) challenges for the day, e.g. offline: the built-in set picked by the date
+  local seed = tonumber(day)
   local state = seed
   local function rand(m)
     state = (state * 1103515245 + 12345) % 2147483648
