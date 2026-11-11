@@ -23,7 +23,7 @@ M.defaults = {
   -- nothing is ever fetched automatically.
   community = {
     enabled = true, -- include synced community challenges in runs
-    url = "https://dev-vinicius-andrade.github.io/nvim-skill-arcade-challenges/community.json", -- built by CI (GitHub Pages)
+    url = "https://arcade.nvim.andradev.io/community.json", -- built by CI (GitHub Pages)
   },
   -- AI challenges: model-written ones published with the community bundle (`:ArcadeSync`), played from `:ArcadeAI`.
   -- They stay out of normal runs and practice unless in_runs = true (the daily set uses today's own either way).

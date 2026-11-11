@@ -2,7 +2,7 @@
 -- that folder), or add the table to your own `require("lazy").setup({...})`.
 return {
   {
-    "dev-vinicius-andrade/nvim-skill-arcade",
+    "andradev-io/nvim-skill-arcade",
     -- dir = "~/path/to/nvim-skill-arcade", -- use this instead of the line above for a local checkout
     cmd = {
       "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadePause",
