@@ -60,4 +60,45 @@ return {
     end,
     why = "`<C-w>o` (`:only`) closes every other window; `<C-w>c` closes just this one; `<C-w>=` evens sizes.",
   },
+  {
+    id = "close-window", title = "Close this split", level = 1,
+    brief = "Two windows are open. Close the one you are in.",
+    text = "two windows, close one",
+    setup = function()
+      vim.cmd("vsplit")
+    end,
+    solution = "<C-w>c",
+    check = function(c)
+      return c.in_arena and c.wins == 1
+    end,
+    why = "`<C-w>c` (`:close`) closes the current window; `<C-w>o` keeps only this one; `:q` closes it too, and quits when it is the last.",
+  },
+  {
+    id = "window-right", title = "Move to the right", level = 2,
+    brief = "Two windows side by side. You are in the left one: move to the window on the right.",
+    text = "left and right",
+    setup = function()
+      vim.cmd("vsplit")
+      vim.cmd("wincmd h")
+    end,
+    solution = "<C-w>l",
+    check = function(c)
+      local l = vim.fn.winlayout()
+      return c.in_arena and l[1] == "row" and #l[2] == 2 and l[2][2][2] == c.cur_win
+    end,
+    why = "`<C-w>h/j/k/l` move between windows by direction; `<C-w>w` cycles; `<C-w>p` goes to the previous one.",
+  },
+  {
+    id = "move-to-tab", title = "Window to its own tab", level = 3,
+    brief = "Two windows are open. Move the current window into a tab of its own.",
+    text = "give me a tab",
+    setup = function()
+      vim.cmd("vsplit")
+    end,
+    solution = "<C-w>T",
+    check = function(c)
+      return c.extra_tabs == 1 and not c.in_arena
+    end,
+    why = "`<C-w>T` breaks the current window out into a new tab. `:tab split` copies it into a tab instead.",
+  },
 }
