@@ -229,6 +229,10 @@ function M.available(opts)
     if ok and opts.fair and ch.needs then
       ok = false
     end
+    -- model-written challenges of the bundle have their own section (:ArcadeAI) unless the player opted in
+    if ok and ch.community and ch.generated and not config.options.ai.in_runs then
+      ok = false
+    end
     local langs = config.options.refactor_languages
     if ok and ch.area == "refactor" and type(langs) == "table" and #langs > 0 then
       ok = vim.tbl_contains(langs, ch.ft)
@@ -333,6 +337,21 @@ function M.build_daily(date)
   local out = vim.list_slice(pool, 1, n)
   table.sort(out, function(a, b) return a.level < b.level end)
   return out
+end
+
+--- the AI challenges (model-written, from the synced bundle), newest first. opts: { area, n }
+function M.ai(opts)
+  opts = opts or {}
+  local out = {}
+  for _, raw in ipairs(require("skill_arcade.community").ai_list()) do
+    if (not opts.area or raw.area == opts.area) and not raw.needs then
+      local ok, ch = pcall(M.normalize, raw, raw.area)
+      if ok then
+        out[#out + 1] = ch
+      end
+    end
+  end
+  return opts.n and vim.list_slice(out, 1, opts.n) or out
 end
 
 --- challenges of one area, easiest first

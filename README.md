@@ -104,7 +104,7 @@ Copy [`examples/lazy.lua`](examples/lazy.lua) to `lua/plugins/skill-arcade.lua`:
   "dev-vinicius-andrade/nvim-skill-arcade",
   cmd = { "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadeSkip",
           "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync",
-          "ArcadeTry", "ArcadeJoin" },
+          "ArcadeAI", "ArcadeTry", "ArcadeJoin" },
   keys = {
     { "<leader>Gm", "<cmd>ArcadeMenu<cr>", desc = "Arcade: menu" },
     { "<leader>Gg", "<cmd>ArcadeRun<cr>", desc = "Arcade: start a run" },
@@ -135,6 +135,7 @@ maps the defaults.
 | what the game found in my setup | `:ArcadeSetup` | `<leader>Ge` |
 | generate challenges (model) | `:ArcadeGenerate [area] [level]` | - |
 | download community challenges | `:ArcadeSync` | - |
+| AI challenges (model-written, newest first) | `:ArcadeAI [latest | area]` | - |
 | play a draft once (room code, clipboard `+`, or file) | `:ArcadeJoin <code>` / `:ArcadeTry <code|+|file>` | - |
 
 Menu: press the letter, or `j`/`k` + `<CR>`; `q`/`<Esc>` closes. Its "mapped to" column shows your real binding.
@@ -183,6 +184,13 @@ Anyone can design a challenge on the website of
 
 `:ArcadeSync` (menu: *Sync community challenges*) downloads the published bundle. They then join runs and practice,
 marked *community*. Sync is manual and https-only; set `community = { enabled = false }` to ignore them.
+
+**AI challenges.** The bundle also carries a model-written collection (`ai`), published by a daily workflow after the same
+gates as any contribution (safety schema, reference solution replayed in real Neovim, no duplicates). They have their own
+section: `:ArcadeAI` (menu: *AI challenges*) lists them newest first with date, area, level and the model that wrote them,
+and lets you play the latest ones (`:ArcadeAI latest`, `ai = { latest = 5 }`), practice by area (`:ArcadeAI editing`) or
+pick one. They stay out of normal runs and practice unless you set `ai = { in_runs = true }`; the daily set uses the
+ones dated today either way.
 
 **Join a draft like a game room:** the website gives every draft a *room code* (`ARC1.…`) and a ready command,
 `:ArcadeJoin ARC1.…`. Paste it in Neovim and you play the draft with your own keybinds and plugins, as one practice

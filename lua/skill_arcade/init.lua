@@ -74,6 +74,65 @@ function M.practice(area)
   end)
 end
 
+--- the AI challenges: model-written, from the synced bundle. :ArcadeAI [latest | <area>]
+function M.ai(arg)
+  local list = catalog.ai()
+  if #list == 0 then
+    return vim.notify("SkillArcade: no AI challenges yet. Run :ArcadeSync (they are published with the community bundle).", vim.log.levels.WARN)
+  end
+  local function start(deck)
+    game.start({ mode = "practice", deck = deck })
+  end
+  if arg == "latest" then
+    return start(catalog.ai({ n = config.options.ai.latest }))
+  elseif arg and arg ~= "" then
+    local deck = catalog.ai({ area = arg })
+    if #deck == 0 then
+      return vim.notify("SkillArcade: no AI challenges for area " .. arg, vim.log.levels.WARN)
+    end
+    return start(deck)
+  end
+  local function line(ch)
+    return string.format("%s  %-11s L%d  %s  (%s)", ch.date or "----------", ch.area, ch.level, ch.title, ch.model or "model ?")
+  end
+  local modes = {
+    { label = string.format("Play the latest %d", math.min(config.options.ai.latest, #list)), run = function() start(catalog.ai({ n = config.options.ai.latest })) end },
+    {
+      label = "Practice by area",
+      run = function()
+        local seen, areas = {}, {}
+        for _, ch in ipairs(list) do
+          if not seen[ch.area] then
+            seen[ch.area] = true
+            areas[#areas + 1] = ch.area
+          end
+        end
+        table.sort(areas)
+        vim.ui.select(areas, { prompt = "AI challenges: area" }, function(a)
+          if a then
+            start(catalog.ai({ area = a }))
+          end
+        end)
+      end,
+    },
+    {
+      label = string.format("Pick one from the list (%d, newest first)", #list),
+      run = function()
+        vim.ui.select(list, { prompt = "AI challenges", format_item = line }, function(ch)
+          if ch then
+            start({ ch })
+          end
+        end)
+      end,
+    },
+  }
+  vim.ui.select(modes, { prompt = "AI challenges", format_item = function(m) return m.label end }, function(m)
+    if m then
+      m.run()
+    end
+  end)
+end
+
 --- play one challenge from a JSON file (e.g. a draft from the challenges website): one practice round,
 --- schema-checked like any community challenge, nothing saved (no points, bests or stats).
 function M.try(path)

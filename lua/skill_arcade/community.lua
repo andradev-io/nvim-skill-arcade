@@ -105,7 +105,7 @@ function M.to_challenge(c)
     id = "community." .. c.id, area = c.area, title = c.title, level = c.level, brief = c.brief, text = c.text,
     cursor = c.cursor, ft = c.ft, loose = c.loose, solution = c.solution, why = c.why, hint = c.hint,
     helps = c.helps, plugin_par = c.plugin_par, par_seconds = c.par_seconds, needs = c.needs,
-    author = c.author, community = true, track = c.track, date = c.date, generated = c.generated,
+    author = c.author, community = true, track = c.track, date = c.date, generated = c.generated, model = c.model, prompt = c.prompt,
     expect = next(text_e) and text_e or nil,
     check = M.check_fn(e),
   }
@@ -138,37 +138,72 @@ function M.load()
   if not data or config.options.community.enabled == false then
     return out
   end
-  for _, raw in ipairs(data.challenges or {}) do
-    local clean = schema.validate(raw)
-    if clean then
-      out[#out + 1] = M.to_challenge(clean)
+  local seen = {}
+  -- `challenges` are the human ones, `ai` the model-written ones (published from the site's daily/ folder)
+  for _, group in ipairs({ { data.challenges, false }, { data.ai, true } }) do
+    for _, raw in ipairs(group[1] or {}) do
+      local clean = schema.validate(raw)
+      if clean and not seen[clean.id] then
+        seen[clean.id] = true
+        if group[2] then
+          clean.generated = true
+        end
+        out[#out + 1] = M.to_challenge(clean)
+      end
     end
   end
   return out
 end
 
+--- the model-written challenges of the synced bundle, newest first (date, then id), as challenge tables
+function M.ai_list()
+  local out = {}
+  for _, ch in ipairs(M.load()) do
+    if ch.generated then
+      out[#out + 1] = ch
+    end
+  end
+  table.sort(out, function(a, b)
+    local da, db = a.date or "", b.date or ""
+    if da ~= db then
+      return da > db
+    end
+    return a.id < b.id
+  end)
+  return out
+end
+
 function M.info()
   local data = read()
-  return data and { fetched = data.fetched, count = #(data.challenges or {}), url = data.url } or nil
+  return data and { fetched = data.fetched, count = #(data.challenges or {}) + #(data.ai or {}), ai = #(data.ai or {}), url = data.url } or nil
 end
 
 --- validates a decoded bundle; returns clean list + list of "id: reason" rejections
+--- (and the `ai` collection of the bundle: returned third, every entry flagged generated)
 function M.accept(bundle)
-  local clean, rejected = {}, {}
+  local clean, rejected, ai = {}, {}, {}
   local seen = {}
-  for i, raw in ipairs(type(bundle) == "table" and bundle.challenges or {}) do
-    local c, err = schema.validate(raw)
-    if c and seen[c.id] then
-      c, err = nil, "duplicate id"
-    end
-    if c then
-      seen[c.id] = true
-      clean[#clean + 1] = c
-    else
-      rejected[#rejected + 1] = string.format("%s: %s", type(raw) == "table" and raw.id or ("#" .. i), err)
+  local function take(list, into, flag)
+    for i, raw in ipairs(type(list) == "table" and list or {}) do
+      local c, err = schema.validate(raw)
+      if c and seen[c.id] then
+        c, err = nil, "duplicate id"
+      end
+      if c then
+        seen[c.id] = true
+        if flag then
+          c.generated = true
+        end
+        into[#into + 1] = c
+      else
+        rejected[#rejected + 1] = string.format("%s: %s", type(raw) == "table" and raw.id or ("#" .. i), err)
+      end
     end
   end
-  return clean, rejected
+  local b = type(bundle) == "table" and bundle or {}
+  take(b.challenges, clean, false)
+  take(b.ai, ai, true)
+  return clean, rejected, ai
 end
 
 --- cb(count|nil, err|nil, rejected)
@@ -192,15 +227,15 @@ function M.sync(cb)
       if not ok or type(bundle) ~= "table" then
         return cb(nil, "bad JSON from " .. url)
       end
-      local clean, rejected = M.accept(bundle)
+      local clean, rejected, ai = M.accept(bundle)
       vim.fn.mkdir(config.options.data_dir, "p")
       local f, err = io.open(file(), "w")
       if not f then
         return cb(nil, tostring(err))
       end
-      f:write(vim.json.encode({ fetched = os.time(), url = url, challenges = clean }))
+      f:write(vim.json.encode({ fetched = os.time(), url = url, challenges = clean, ai = ai }))
       f:close()
-      cb(#clean, nil, rejected)
+      cb(#clean + #ai, nil, rejected, #ai)
     end))
 end
 

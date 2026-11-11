@@ -406,6 +406,47 @@ do
   config.setup({ data_dir = tmp })
   vim.fn.delete(dd, "rf")
 end
+-- AI challenges: the `ai` collection of the bundle, their own section, kept out of normal runs unless opted in
+do
+  local function ai_item(id, area, level, date)
+    local c = base()
+    c.id, c.title, c.area, c.level, c.date, c.model, c.prompt = id, "AI " .. id, area, level, date, "model-x", "v1.1:abcdef123456"
+    return c
+  end
+  local human = base()
+  human.id, human.title = "human-one", "Human one"
+  local bundle = { challenges = { human }, ai = { ai_item("a1", "editing", 1, "2026-03-01"), ai_item("a2", "search", 2, "2026-03-03"), ai_item("a3", "editing", 3, "2026-03-03"), ai_item("human-one", "editing", 1, "2026-03-04") } }
+  local clean_h, rejected_ai, clean_ai = community.accept(bundle)
+  check("accept splits the ai collection, flags it generated, drops a duplicate id",
+    #clean_h == 1 and #clean_ai == 3 and clean_ai[1].generated == true and #rejected_ai == 1, vim.inspect(rejected_ai))
+  check("provenance is kept", clean_ai[1].model == "model-x" and clean_ai[1].prompt == "v1.1:abcdef123456")
+  local dd = vim.fn.tempname()
+  vim.fn.mkdir(dd, "p")
+  local fh = io.open(dd .. "/community.json", "w")
+  fh:write(vim.json.encode({ fetched = os.time(), challenges = clean_h, ai = clean_ai }))
+  fh:close()
+  config.setup({ data_dir = dd })
+  local list = catalog.ai()
+  check("AI list is newest first (date, then id)", #list == 3 and list[1].id == "community.a2" and list[2].id == "community.a3" and list[3].id == "community.a1",
+    vim.inspect(vim.tbl_map(function(c) return c.id end, list)))
+  check("AI list filters by area and count", #catalog.ai({ area = "editing" }) == 2 and #catalog.ai({ n = 1 }) == 1)
+  check("AI challenges keep their model", list[1].model == "model-x")
+  local function in_pool(id)
+    for _, ch in ipairs(catalog.available()) do
+      if ch.id == id then
+        return true
+      end
+    end
+    return false
+  end
+  check("AI challenges stay out of normal runs and practice", not in_pool("community.a1") and in_pool("community.human-one"))
+  config.setup({ data_dir = dd, ai = { in_runs = true } })
+  check("ai.in_runs puts them back", in_pool("community.a1"))
+  config.setup({ data_dir = dd, community = { enabled = false } })
+  check("no AI challenges when community is off", #catalog.ai() == 0)
+  config.setup({ data_dir = tmp })
+  vim.fn.delete(dd, "rf")
+end
 local sync_err
 config.options.community.url = "http://insecure.example/x.json"
 community.sync(function(_, err) sync_err = err end)
