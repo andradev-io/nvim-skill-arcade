@@ -4,7 +4,10 @@ local keys = require("skill_arcade.keys")
 
 local M = {}
 
-local EXT = { lua = "lua", python = "py", javascript = "js", markdown = "md", text = "txt", html = "html", json = "json" }
+local EXT = {
+  lua = "lua", python = "py", javascript = "js", markdown = "md", text = "txt", html = "html", json = "json",
+  typescript = "ts", go = "go", cs = "cs",
+}
 
 local AREA_HINT = {
   motions = "Think counts, f/t, %, { }, / search, G.",
@@ -18,6 +21,7 @@ local AREA_HINT = {
   quickfix = ":copen, :cc N, ]q / [q, :vimgrep.",
   diagnostics = "]d / [d jump, <C-w>d opens the float, vim.diagnostic.* has the rest.",
   track = "Reach the goal cell with motions: w b e, f t ; ,, %, { }, G, | (column), marks, / search.",
+  refactor = "Small code refactors: :s with \\< \\>, J, :m, cw, text objects, a macro or the dot.",
   plugins = "This one rewards a plugin you installed.",
 }
 
@@ -224,6 +228,10 @@ function M.available(opts)
     end
     if ok and opts.fair and ch.needs then
       ok = false
+    end
+    local langs = config.options.refactor_languages
+    if ok and ch.area == "refactor" and type(langs) == "table" and #langs > 0 then
+      ok = vim.tbl_contains(langs, ch.ft)
     end
     if ok then
       out[#out + 1] = ch

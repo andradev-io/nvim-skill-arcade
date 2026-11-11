@@ -35,7 +35,7 @@ local areas = {}
 for _, ch in ipairs(all) do
   areas[ch.area] = (areas[ch.area] or 0) + 1
 end
-check("covers all 12 skill areas", vim.tbl_count(areas) == 12, vim.inspect(areas))
+check("covers all 13 skill areas", vim.tbl_count(areas) == 13, vim.inspect(areas))
 local thin = {}
 for a, n in pairs(areas) do
   if n < 5 then
@@ -48,6 +48,20 @@ for _, ch in ipairs(all) do
   per_level[ch.level] = (per_level[ch.level] or 0) + 1
 end
 check("every level 1-5 has at least 8 challenges", #per_level == 5 and math.min(unpack(per_level)) >= 8, vim.inspect(per_level))
+-- refactor sprints: several languages, every level, and the languages setting narrows them
+local langs, levels = {}, {}
+for _, ch in ipairs(all) do
+  if ch.area == "refactor" then
+    langs[ch.ft] = true
+    levels[ch.level] = true
+  end
+end
+check("refactor sprints cover 6 languages", vim.tbl_count(langs) == 6, vim.inspect(langs))
+check("refactor sprints cover levels 1-5", vim.tbl_count(levels) == 5, vim.inspect(levels))
+config.setup({ data_dir = vim.fn.tempname(), refactor_languages = { "go" } })
+local only_go = vim.tbl_filter(function(c) return c.area == "refactor" end, catalog.available({ areas = { "refactor" } }))
+check("refactor_languages keeps only the chosen language", #only_go == 3 and only_go[1].ft == "go", #only_go)
+config.setup({ data_dir = vim.fn.tempname() })
 local ids = {}
 for _, ch in ipairs(all) do
   check("unique id " .. ch.id, not ids[ch.id])
