@@ -62,4 +62,23 @@ return {
     helps = { trouble = "`:Trouble diagnostics` / `:Trouble qflist` give the same list in a nicer view; any mapping you made for setqflist counts" },
     why = "`vim.diagnostic.setqflist()` / `setloclist()` fill the lists; then `]q`, `:cdo` and friends work on them.",
   },
+  {
+    id = "prev-diag", title = "Previous diagnostic", level = 1,
+    brief = "The cursor is at the bottom. Jump to the closest diagnostic ABOVE it.",
+    lines = code(10),
+    cursor = { 10, 0 },
+    setup = plant,
+    solution = "[d",
+    expect = { cursor = { 9 } },
+    why = "`[d` goes to the previous diagnostic, `]d` to the next. They wrap or stop at the ends depending on your config.",
+  },
+  {
+    id = "last-diag", title = "Last diagnostic", level = 2,
+    brief = "Jump to the LAST diagnostic in the buffer in one command (you start at the top).",
+    lines = code(10),
+    setup = plant,
+    solution = "]D",
+    expect = { cursor = { 9 } },
+    why = "`]D` jumps to the last diagnostic and `[D` to the first (Neovim 0.11+), no matter where you are.",
+  },
 }

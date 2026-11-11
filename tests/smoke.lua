@@ -30,12 +30,24 @@ vim.notify = function() end
 
 -- ── content ────────────────────────────────────────────────────────────────
 local all = catalog.builtin()
-check("at least 15 built-in challenges", #all >= 15, #all)
+check("at least 100 built-in challenges", #all >= 100, #all)
 local areas = {}
 for _, ch in ipairs(all) do
   areas[ch.area] = (areas[ch.area] or 0) + 1
 end
 check("covers all 12 skill areas", vim.tbl_count(areas) == 12, vim.inspect(areas))
+local thin = {}
+for a, n in pairs(areas) do
+  if n < 5 then
+    thin[#thin + 1] = a .. "=" .. n
+  end
+end
+check("every area has at least 5 challenges", #thin == 0, table.concat(thin, ","))
+local per_level = {}
+for _, ch in ipairs(all) do
+  per_level[ch.level] = (per_level[ch.level] or 0) + 1
+end
+check("every level 1-5 has at least 8 challenges", #per_level == 5 and math.min(unpack(per_level)) >= 8, vim.inspect(per_level))
 local ids = {}
 for _, ch in ipairs(all) do
   check("unique id " .. ch.id, not ids[ch.id])

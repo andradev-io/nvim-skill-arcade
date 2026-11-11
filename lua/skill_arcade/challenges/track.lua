@@ -147,4 +147,79 @@ S.....................
     solution = "2Gf(%GfX",
     why = "2G picks the line, f( lands on the bracket, % jumps to its partner and G + fX finishes: five different motions, no hjkl.",
   }),
+  build({
+    id = "up-the-stairs", title = "Up the stairs", level = 1,
+    brief = "Start at S at the bottom and climb to the X at the top.",
+    map = [[
+X
+.
+.
+.
+.
+S]],
+    solution = "gg",
+    why = "gg jumps to the first line, G to the last. Climbing with k would be five keys.",
+  }),
+  build({
+    id = "word-by-word", title = "Word by word", level = 2,
+    brief = "Start at S and reach X by walking over words, not letters.",
+    map = [[
+S one two three X]],
+    solution = "4w",
+    why = "w jumps to the start of the next word and takes a count: 4w skips four words. W and B treat punctuation as part of a word.",
+  }),
+  build({
+    id = "two-stops", title = "Two stops down the grid", level = 3,
+    brief = "Touch 1, then 2, then reach X.",
+    map = [[
+S..1......
+..........
+........2.
+..........
+.........X]],
+    solution = "f13Gf25G$",
+    why = "f lands on the checkpoint, {n}G changes row, f again, and $ ends the last row exactly on X.",
+  }),
+  build({
+    id = "paragraph-run", title = "Paragraph run", level = 4,
+    brief = "Touch 1, then reach X. h, j, k and l are switched off.",
+    forbid = { "hjkl" },
+    map = [[
+S line one
+still the first block
+
+second block 1
+more of second
+
+third block X]],
+    solution = "}+$}+$",
+    why = "} jumps to the blank line after a block, + steps to the first character of the next line, and $ runs to the end: no hjkl needed.",
+  }),
+  build({
+    id = "jump-list-return", title = "Out and back by jump list", level = 4,
+    brief = "Touch the * at the bottom, then return to where you started. Do it without typing the way back.",
+    map = [[
+* home...
+.........
+.........
+.........
+........*]],
+    start = { 1, 0 }, goal = { 1, 0 }, checkpoints = { { 5, 8 } },
+    solution = "G$<C-o>",
+    why = "G is a jump, so <C-o> takes you back to the exact place you jumped from. No mark needed.",
+  }),
+  build({
+    id = "two-pairs-home", title = "Two pairs, then home", level = 5,
+    brief = "Touch the [ and its ], then the { and its }, then reach X. No hjkl and no arrow keys.",
+    forbid = { "hjkl", "arrows" },
+    map = [[
+S.................
+..[............]..
+..................
+..{.....}.........
+.................X]],
+    checkpoints = { { 2, 2 }, { 2, 15 }, { 4, 2 }, { 4, 8 } },
+    solution = "2G0f[%4G0f{%5G$",
+    why = "Each pair is a jump of its own: f lands on the opening bracket, % on its partner. Row changes by {n}G, 0 resets the column.",
+  }),
 }

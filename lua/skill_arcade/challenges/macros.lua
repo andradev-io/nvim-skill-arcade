@@ -15,4 +15,28 @@ return {
     expect = { text = "id_1\nid_2\nid_3\nid_4\nid_5" },
     why = "`yyp<C-a>` duplicates and increments; recorded once, `3@q` does the rest. Visual `g<C-a>` can also number a column.",
   },
+  {
+    id = "simple-prefix", title = "Bullet the list", level = 2,
+    brief = "Put '- ' in front of the four lines. Record one macro and replay it.",
+    text = "a\nb\nc\nd",
+    solution = "qqI- <Esc>jq3@q",
+    expect = { text = "- a\n- b\n- c\n- d" },
+    why = "Record `I- <Esc>j` once (the `j` leaves you on the next line), then `3@q`. `:%norm I- ` or a visual block do it too.",
+  },
+  {
+    id = "range-macro", title = "Macro on a range", level = 3,
+    brief = "Append ';' to every line: record on the first line, then run the macro on lines 2 to 3 only (the last line must stay bare).",
+    text = "a\nb\nc\nd",
+    solution = "qqA;<Esc>q:2,3norm @q<CR>",
+    expect = { text = "a;\nb;\nc;\nd" },
+    why = "`:{range}norm @q` plays a macro on every line of a range, with no counting and no `j` inside the macro.",
+  },
+  {
+    id = "recursive-macro", title = "Run until the end", level = 5,
+    brief = "Put '- ' in front of every line without counting the lines: a macro that calls itself.",
+    text = "a\nb\nc\nd\ne\nf",
+    solution = "qaqqaI- <Esc>j@aq@a",
+    expect = { text = "- a\n- b\n- c\n- d\n- e\n- f" },
+    why = "`qaq` empties the register first, so the `@a` typed at the end of the recording is harmless. The macro then calls itself and stops by itself when `j` fails on the last line.",
+  },
 }

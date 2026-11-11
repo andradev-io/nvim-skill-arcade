@@ -71,4 +71,44 @@ zeta]],
     expect = { cursor = { 7, 0 } },
     why = "`}` and `{` hop between blank-line separated blocks. `7G` or `/eps<CR>` also work.",
   },
+  {
+    id = "end-of-word", title = "Ends of words", level = 1,
+    brief = "Put the cursor on the last letter of 'beta'.",
+    text = "alpha beta gamma",
+    solution = "ee",
+    expect = { cursor = { 1, 9 } },
+    why = "`e` jumps to the end of the current word, and to the end of the next one when you already stand on an end. `b` and `w` go to word starts, `ge` to the previous end.",
+  },
+  {
+    id = "back-word", title = "Walk back three words", level = 1,
+    brief = "The cursor sits at the end of the line. Put it on the 't' of 'two'.",
+    text = "one two three four",
+    cursor = { 1, 17 },
+    solution = "3b",
+    expect = { cursor = { 1, 4 } },
+    why = "`b` moves back one word, `3b` three. Every motion takes a count: `3w`, `2e`, `4j`.",
+  },
+  {
+    id = "half-way", title = "Half way down", level = 3,
+    brief = "Put the cursor on line 10, which is exactly halfway through the 20-line buffer.",
+    lines = (function()
+      local t = {}
+      for i = 1, 20 do
+        t[i] = i == 10 and "line 10 is the middle" or ("line " .. i)
+      end
+      return t
+    end)(),
+    solution = "50%",
+    expect = { cursor = { 10 } },
+    why = "`{n}%` jumps to n percent of the file (`50%` = the middle, `100%` = the last line). Without a count `%` jumps to the matching bracket.",
+  },
+  {
+    id = "paren-up", title = "Out of the nest", level = 4,
+    brief = "The cursor is on 'c', deep inside two pairs of parentheses. Jump to the OUTER opening parenthesis.",
+    text = "f(a, g(b, c), d)",
+    cursor = { 1, 10 },
+    solution = "2[(",
+    expect = { cursor = { 1, 1 } },
+    why = "`[(` jumps to the previous unmatched `(`; with a count it climbs that many levels. `[{`, `])` and `]}` work the same way.",
+  },
 }
