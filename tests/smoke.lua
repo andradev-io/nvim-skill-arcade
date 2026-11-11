@@ -608,7 +608,7 @@ end
 
 -- ── packaging ──────────────────────────────────────────────────────────────
 local spec = dofile("examples/lazy.lua")
-check("lazy example loads", type(spec) == "table" and spec[1][1] == "dev-vinicius-andrade/nvim-skill-arcade")
+check("lazy example loads", type(spec) == "table" and spec[1][1] == "andradev-io/nvim-skill-arcade")
 for _, name in ipairs({ "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeQuit", "ArcadeStats", "ArcadeSetup" }) do
   check("command " .. name, vim.fn.exists(":" .. name) == 2)
 end

@@ -101,7 +101,7 @@ Copy [`examples/lazy.lua`](examples/lazy.lua) to `lua/plugins/skill-arcade.lua`:
 
 ```lua
 {
-  "dev-vinicius-andrade/nvim-skill-arcade",
+  "andradev-io/nvim-skill-arcade",
   cmd = { "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadeSkip",
           "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync",
           "ArcadeAI", "ArcadeTry", "ArcadeJoin" },
@@ -179,7 +179,7 @@ reference keys are only displayed (marked *model-made*). Invalid or already-solv
 ## Community challenges
 
 Anyone can design a challenge on the website of
-[nvim-skill-arcade-challenges](https://github.com/dev-vinicius-andrade/nvim-skill-arcade-challenges)
+[nvim-skill-arcade-challenges](https://github.com/andradev-io/nvim-skill-arcade-challenges)
 (form -> pull request -> CI replays the reference keys -> review -> published).
 
 `:ArcadeSync` (menu: *Sync community challenges*) downloads the published bundle. They then join runs and practice,
