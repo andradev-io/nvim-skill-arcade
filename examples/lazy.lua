@@ -6,7 +6,7 @@ return {
     -- dir = "~/path/to/nvim-skill-arcade", -- use this instead of the line above for a local checkout
     cmd = {
       "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadePause",
-      "ArcadePlay", "ArcadeSkip", "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup",
+      "ArcadePlay", "ArcadeSkip", "ArcadeHint", "ArcadeNext", "ArcadeRetry", "ArcadeQuit", "ArcadeStats", "ArcadeSetup",
       "ArcadeGenerate", "ArcadeSync", "ArcadeAI", "ArcadeLogin", "ArcadeLogout", "ArcadeAccount", "ArcadeTry", "ArcadeJoin",
     },
     -- lazy-load on first use; `keys` also registers the mappings (and shows them in which-key)
@@ -19,6 +19,7 @@ return {
       { "<leader>Gs", "<cmd>ArcadeSkip<cr>", desc = "Arcade: skip" },
       { "<leader>Gh", "<cmd>ArcadeHint<cr>", desc = "Arcade: hint" },
       { "<leader>Gn", "<cmd>ArcadeNext<cr>", desc = "Arcade: next challenge" },
+      { "<leader>GR", "<cmd>ArcadeRetry<cr>", desc = "Arcade: retry challenge" },
       { "<leader>Gq", "<cmd>ArcadeQuit<cr>", desc = "Arcade: quit run" },
       { "<leader>Gt", "<cmd>ArcadeStats<cr>", desc = "Arcade: stats" },
       { "<leader>Ge", "<cmd>ArcadeSetup<cr>", desc = "Arcade: what the game found in my setup" },

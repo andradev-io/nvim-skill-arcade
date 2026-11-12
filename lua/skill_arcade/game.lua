@@ -681,9 +681,24 @@ function M.next()
   render_hud()
 end
 
+--- Practice and campaign let you start the same challenge again, from the result screen or while playing it.
+--- Scored runs do not (a retry would be a free redo of a graded round); there you can skip.
+function M.can_retry()
+  local run = M.run
+  return run ~= nil and (run.mode == "practice" or run.mode == "campaign")
+end
+
 function M.retry()
   local run = M.run
-  if not run or run.state ~= "result" then
+  if not run then
+    return
+  end
+  local live = run.state == "running" or run.state == "paused" or run.state == "countdown"
+  if run.state ~= "result" and not live then
+    return
+  end
+  if live and not M.can_retry() then
+    notify("retry works in practice and the campaign; in a run you can skip (no points)", vim.log.levels.WARN)
     return
   end
   if run.result_ui then

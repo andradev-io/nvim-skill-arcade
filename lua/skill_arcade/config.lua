@@ -70,6 +70,7 @@ M.defaults = {
     skip = "<leader>Gs",
     hint = "<leader>Gh",
     next = "<leader>Gn", -- continue after a result
+    retry = "<leader>GR", -- start the challenge again (practice and campaign)
     quit = "<leader>Gq",
     stats = "<leader>Gt",
     setup = "<leader>Ge", -- what the game found in YOUR setup

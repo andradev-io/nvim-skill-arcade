@@ -130,7 +130,7 @@ Copy [`examples/lazy.lua`](examples/lazy.lua) to `lua/plugins/skill-arcade.lua`:
 {
   "andradev-io/nvim-skill-arcade",
   cmd = { "Arcade", "ArcadeMenu", "ArcadeRun", "ArcadeDaily", "ArcadePractice", "ArcadeToggle", "ArcadeSkip",
-          "ArcadeHint", "ArcadeNext", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync", "ArcadeLogin", "ArcadeLogout", "ArcadeAccount",
+          "ArcadeHint", "ArcadeNext", "ArcadeRetry", "ArcadeQuit", "ArcadeStats", "ArcadeSetup", "ArcadeGenerate", "ArcadeSync", "ArcadeLogin", "ArcadeLogout", "ArcadeAccount",
           "ArcadeAI", "ArcadeTry", "ArcadeJoin" },
   keys = {
     { "<leader>Gm", "<cmd>ArcadeMenu<cr>", desc = "Arcade: menu" },
@@ -158,6 +158,7 @@ maps the defaults.
 | skip | `:ArcadeSkip` | `<leader>Gs` |
 | hint (-25%) | `:ArcadeHint` | `<leader>Gh` |
 | next after a result | `:ArcadeNext` | `<leader>Gn` |
+| retry the challenge (practice, campaign; also while playing) | `:ArcadeRetry` | `<leader>GR` |
 | quit run (shows summary) | `:ArcadeQuit` | `<leader>Gq` |
 | stats and bests | `:ArcadeStats` | `<leader>Gt` |
 | what the game found in my setup | `:ArcadeSetup` | `<leader>Ge` |

@@ -7,7 +7,7 @@ local NS = vim.api.nvim_create_namespace("skill_arcade_menu")
 
 local COMMANDS = {
   menu = "ArcadeMenu", campaign = "ArcadeCampaign", run = "ArcadeRun", daily = "ArcadeDaily", practice = "ArcadePractice",
-  toggle = "ArcadeToggle", skip = "ArcadeSkip", hint = "ArcadeHint", next = "ArcadeNext",
+  toggle = "ArcadeToggle", skip = "ArcadeSkip", hint = "ArcadeHint", next = "ArcadeNext", retry = "ArcadeRetry",
   quit = "ArcadeQuit", stats = "ArcadeStats", setup = "ArcadeSetup", generate = "ArcadeGenerate", sync = "ArcadeSync", ai = "ArcadeAI", login = "ArcadeLogin", account = "ArcadeAccount",
 }
 
@@ -94,17 +94,23 @@ function M.items()
       item("x", "Quit run", "quit", function() a.quit() end),
     }
   elseif st == "result" then
-    return {
-      item("n", "Next challenge", "next", function() a.next() end),
-      item("x", "Quit run", "quit", function() a.quit() end),
-    }
+    local rows = { item("n", "Next challenge", "next", function() a.next() end) }
+    if game.can_retry() then
+      rows[#rows + 1] = item("r", "Retry this challenge", "retry", function() a.retry() end)
+    end
+    rows[#rows + 1] = item("x", "Quit run", "quit", function() a.quit() end)
+    return rows
   end
-  return { -- countdown / running
+  local rows = { -- countdown / running
     item("p", "Pause", "toggle", function() a.toggle() end),
     item("s", "Skip (no points, streak resets)", "skip", function() a.skip() end),
     item("h", "Hint (costs points)", "hint", function() a.hint() end),
-    item("x", "Quit run", "quit", function() a.quit() end),
   }
+  if game.can_retry() then
+    rows[#rows + 1] = item("r", "Retry this challenge", "retry", function() a.retry() end)
+  end
+  rows[#rows + 1] = item("x", "Quit run", "quit", function() a.quit() end)
+  return rows
 end
 
 local function title()

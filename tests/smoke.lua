@@ -234,8 +234,31 @@ vim.api.nvim_win_close(h.win, true)
 game.start({ mode = "practice", deck = { catalog.by_id("motions.line-end") }, countdown = 0 })
 local labels = {}
 for _, it in ipairs(menu.items()) do labels[#labels + 1] = it.action end
-check("running menu offers toggle/skip/hint/quit", vim.deep_equal(labels, { "toggle", "skip", "hint", "quit" }), vim.inspect(labels))
+check("running menu offers toggle/skip/hint/retry/quit in practice", vim.deep_equal(labels, { "toggle", "skip", "hint", "retry", "quit" }), vim.inspect(labels))
+do
+  -- retry while playing starts the same challenge again with a clean log (practice only)
+  local before = game.run.cur.ch.id
+  game.run.cur.log = { { "x", "n" }, { "y", "n" } }
+  arcade.retry()
+  check("retry while playing keeps the challenge", game.run.cur.ch.id == before and game.run.index == 1)
+  check("retry while playing clears the key log", #game.run.cur.log == 0)
+  check(":ArcadeRetry exists", vim.fn.exists(":ArcadeRetry") == 2)
+end
 game._tick()
+do
+  -- a scored run does not allow a free redo
+  quiet_abort()
+  game.start({ mode = "run", deck = { catalog.by_id("motions.line-end") }, countdown = 0 })
+  local labels2 = {}
+  for _, it in ipairs(menu.items()) do labels2[#labels2 + 1] = it.action end
+  check("scored run menu has no retry", not vim.tbl_contains(labels2, "retry"), vim.inspect(labels2))
+  local id = game.run.cur.ch.id
+  game.run.cur.log = { { "x", "n" } }
+  arcade.retry()
+  check("retry in a scored run does nothing", game.run.cur.ch.id == id and #game.run.cur.log == 1)
+  quiet_abort()
+  game.start({ mode = "practice", deck = { catalog.by_id("motions.line-end") }, countdown = 0 })
+end
 local hudwin = require("skill_arcade.ui").hud_win()
 check("HUD float exists", hudwin and vim.api.nvim_win_is_valid(hudwin))
 local hudtext = table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(hudwin), 0, -1, false), "\n")

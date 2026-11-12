@@ -158,6 +158,7 @@ function M.play() game.play() end
 function M.skip() game.skip() end
 function M.hint() game.hint() end
 function M.next() game.next() end
+function M.retry() game.retry() end
 function M.quit() game.quit() end
 
 function M.stats()
