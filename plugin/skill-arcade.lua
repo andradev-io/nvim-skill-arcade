@@ -20,6 +20,7 @@ local simple = {
   ArcadeSkip = { "skip", "Skip this challenge (no points, streak resets)" },
   ArcadeHint = { "hint", "Show a hint (costs points)" },
   ArcadeNext = { "next", "Next challenge after a result" },
+  ArcadeRetry = { "retry", "Start this challenge again (practice and campaign)" },
   ArcadeQuit = { "quit", "Quit the run and show the summary" },
   ArcadeStats = { "stats", "Points, weak areas, personal bests" },
   ArcadeSetup = { "setup_report", "Show which of your plugins the game found" },
